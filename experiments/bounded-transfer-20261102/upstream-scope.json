@@ -1,0 +1,39 @@
+{
+  "checked_on": "2026-11-02",
+  "pull_requests": [
+    {
+      "number": 19127,
+      "title": "[BugFix][WeightTransfer] Fix packed cross-chunk readiness and buffer lifetime",
+      "url": "https://github.com/vllm-project/vllm-ascend/pull/19127",
+      "state": "open",
+      "head": "5d30f81d0cf777168b472cfe9ed45b380ed5721c",
+      "updated_at": "2026-10-28T05:01:17Z"
+    },
+    {
+      "number": 12713,
+      "title": "[BugFix][WeightTransfer] Sync source stream in packed_broadcast_producer before packing",
+      "url": "https://github.com/vllm-project/vllm-ascend/pull/12713",
+      "state": "open",
+      "head": "2c69d0acb22d49a9494d9c40963a6a76b689c105",
+      "updated_at": "2026-10-22T03:56:08Z"
+    },
+    {
+      "number": 19950,
+      "title": "[BugFix][WeightTransfer] Reuse upstream packed HCCL flow with Ascend cross-chunk ordering",
+      "url": "https://github.com/vllm-project/vllm-ascend/pull/19950",
+      "state": "open",
+      "head": "73746abcfb975f65af592ef47cba03cae7ad6665",
+      "updated_at": "2026-10-28T02:47:41Z"
+    },
+    {
+      "number": 20676,
+      "title": "[Refactor][WeightTransfer] Reuse vLLM packed loops with shared NPU stream APIs",
+      "url": "https://github.com/vllm-project/vllm-ascend/pull/20676",
+      "state": "open",
+      "head": "3d22b4ac816140a6cef598f36b82b260fe962533",
+      "updated_at": "2026-11-02T13:47:52Z"
+    }
+  ],
+  "scope": "The inspected lifecycle and upstream-loop reuse PRs retain whole-parameter packing. This patch adds explicit cross-parameter byte fragmentation and a transport-held storage bound.",
+  "roadmap": "https://github.com/vllm-project/vllm-ascend/issues/19613"
+}

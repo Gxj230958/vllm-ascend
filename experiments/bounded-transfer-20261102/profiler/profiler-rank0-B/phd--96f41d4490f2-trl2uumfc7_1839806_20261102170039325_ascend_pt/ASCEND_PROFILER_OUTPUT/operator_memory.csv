@@ -1,0 +1,2 @@
+Name,Size(KB),Allocation Time(us),Release Time(us),Active Release Time(us),Duration(us),Active Duration(us),Allocation Total Allocated(MB),Allocation Total Reserved(MB),Allocation Total Active(MB),Release Total Allocated(MB),Release Total Reserved(MB),Release Total Active(MB),Stream Ptr,Device Type
+aten::empty,131072.5,1793638839450230.913	,1793638839800649.736	,1793638839800648.387	,350418.823	,350417.474	,4224.0166015625,4292.0,4224.0166015625,4096.01611328125,4292.0,4096.01611328125,47,NPU:0

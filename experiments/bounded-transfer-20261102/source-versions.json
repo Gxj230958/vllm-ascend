@@ -1,0 +1,10 @@
+{
+  "ascend": "24a76e84394ae3427195e3715fc08e90769d398c",
+  "vllm": "544f182d9f0c9bfe8bd7645525951d5e3692a542",
+  "lifecycle_dependency_head": "5d30f81d0cf777168b472cfe9ed45b380ed5721c",
+  "lifecycle_dependency_pr": 19127,
+  "lifecycle_dependency_files": [
+    "vllm_ascend/distributed/weight_transfer/packed_tensor.py",
+    "tests/ut/distributed/weight_transfer/test_packed_tensor.py"
+  ]
+}

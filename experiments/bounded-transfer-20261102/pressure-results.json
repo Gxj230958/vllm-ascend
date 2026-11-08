@@ -1,0 +1,91 @@
+[
+  {
+    "mode": "A",
+    "receiver_headroom_mib": 2432,
+    "success": false,
+    "successful_updates": 0,
+    "allocation_failures": [
+      {
+        "rank": 1,
+        "mode": "A",
+        "sample": 0,
+        "receiver_headroom_mib": 2432,
+        "allocated_before": 4294984192,
+        "allocated_peak": 6442468352,
+        "error": "NPU out of memory. Tried to allocate 2.00 GiB (NPU 1; 60.96 GiB total capacity; 6.00 GiB already allocated; 6.00 GiB current active; 54.11 GiB free; 6.38 GiB allowed; 6.07 GiB reserved in total by PyTorch).If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation."
+      }
+    ]
+  },
+  {
+    "mode": "C",
+    "receiver_headroom_mib": 2432,
+    "success": true,
+    "successful_updates": 10,
+    "allocation_failures": []
+  },
+  {
+    "mode": "C",
+    "receiver_headroom_mib": 2304,
+    "success": false,
+    "successful_updates": 0,
+    "allocation_failures": [
+      {
+        "rank": 1,
+        "mode": "C",
+        "sample": 0,
+        "receiver_headroom_mib": 2304,
+        "allocated_before": 4294984192,
+        "allocated_peak": 4563420672,
+        "error": "NPU out of memory. Tried to allocate 2.00 GiB (NPU 1; 60.96 GiB total capacity; 4.25 GiB already allocated; 4.25 GiB current active; 55.85 GiB free; 6.25 GiB allowed; 4.32 GiB reserved in total by PyTorch).If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation."
+      }
+    ]
+  },
+  {
+    "mode": "B",
+    "receiver_headroom_mib": 2176,
+    "success": false,
+    "successful_updates": 0,
+    "allocation_failures": [
+      {
+        "rank": 1,
+        "mode": "B",
+        "sample": 0,
+        "receiver_headroom_mib": 2176,
+        "allocated_before": 4294984192,
+        "allocated_peak": 4429202432,
+        "error": "NPU out of memory. Tried to allocate 2.00 GiB (NPU 1; 60.96 GiB total capacity; 4.13 GiB already allocated; 4.13 GiB current active; 55.98 GiB free; 6.13 GiB allowed; 4.19 GiB reserved in total by PyTorch).If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation."
+      }
+    ]
+  },
+  {
+    "mode": "B",
+    "receiver_headroom_mib": 2304,
+    "success": true,
+    "successful_updates": 10,
+    "allocation_failures": []
+  },
+  {
+    "mode": "A",
+    "receiver_headroom_mib": 4480,
+    "success": false,
+    "successful_updates": 0,
+    "allocation_failures": [
+      {
+        "rank": 1,
+        "mode": "A",
+        "sample": 0,
+        "receiver_headroom_mib": 4480,
+        "allocated_before": 4294984192,
+        "allocated_peak": 8858388992,
+        "error": "NPU out of memory. Tried to allocate 66.00 MiB (NPU 1; 60.96 GiB total capacity; 8.25 GiB already allocated; 8.25 GiB current active; 51.85 GiB free; 8.38 GiB allowed; 8.32 GiB reserved in total by PyTorch).If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation."
+      }
+    ]
+  },
+  {
+    "mode": "A",
+    "receiver_headroom_mib": 4608,
+    "success": true,
+    "successful_updates": 10,
+    "allocation_failures": []
+  }
+]

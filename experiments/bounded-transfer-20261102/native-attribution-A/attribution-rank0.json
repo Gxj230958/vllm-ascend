@@ -1,0 +1,115 @@
+{
+  "materializations": [
+    {
+      "layer": "AscendVocabParallelEmbedding",
+      "allocated_delta": 2147484160,
+      "layer_tensor_bytes": 2147483648,
+      "loader_buffered_input_bytes": 2147483648
+    },
+    {
+      "layer": "AscendQKVParallelLinear",
+      "allocated_delta": 50332160,
+      "layer_tensor_bytes": 50343936,
+      "loader_buffered_input_bytes": 50356224
+    },
+    {
+      "layer": "AscendRowParallelLinear",
+      "allocated_delta": 33554944,
+      "layer_tensor_bytes": 33554432,
+      "loader_buffered_input_bytes": 33554432
+    },
+    {
+      "layer": "AscendMergedColumnParallelLinear",
+      "allocated_delta": 134218240,
+      "layer_tensor_bytes": 134217728,
+      "loader_buffered_input_bytes": 134217728
+    },
+    {
+      "layer": "AscendRowParallelLinear",
+      "allocated_delta": 67109376,
+      "layer_tensor_bytes": 67108864,
+      "loader_buffered_input_bytes": 67108864
+    },
+    {
+      "layer": "AscendRMSNorm",
+      "allocated_delta": 8704,
+      "layer_tensor_bytes": 8192,
+      "loader_buffered_input_bytes": 8192
+    },
+    {
+      "layer": "AscendRMSNorm",
+      "allocated_delta": 8704,
+      "layer_tensor_bytes": 8192,
+      "loader_buffered_input_bytes": 8192
+    },
+    {
+      "layer": "AscendQKVParallelLinear",
+      "allocated_delta": 50332160,
+      "layer_tensor_bytes": 50343936,
+      "loader_buffered_input_bytes": 50356224
+    },
+    {
+      "layer": "AscendRowParallelLinear",
+      "allocated_delta": 33554944,
+      "layer_tensor_bytes": 33554432,
+      "loader_buffered_input_bytes": 33554432
+    },
+    {
+      "layer": "AscendMergedColumnParallelLinear",
+      "allocated_delta": 134218240,
+      "layer_tensor_bytes": 134217728,
+      "loader_buffered_input_bytes": 134217728
+    },
+    {
+      "layer": "AscendRowParallelLinear",
+      "allocated_delta": 67109376,
+      "layer_tensor_bytes": 67108864,
+      "loader_buffered_input_bytes": 67108864
+    },
+    {
+      "layer": "AscendRMSNorm",
+      "allocated_delta": 8704,
+      "layer_tensor_bytes": 8192,
+      "loader_buffered_input_bytes": 8192
+    },
+    {
+      "layer": "AscendRMSNorm",
+      "allocated_delta": 8704,
+      "layer_tensor_bytes": 8192,
+      "loader_buffered_input_bytes": 8192
+    },
+    {
+      "layer": "AscendRMSNorm",
+      "allocated_delta": 8704,
+      "layer_tensor_bytes": 8192,
+      "loader_buffered_input_bytes": 8192
+    },
+    {
+      "layer": "AscendParallelLMHead",
+      "allocated_delta": 2147484160,
+      "layer_tensor_bytes": 2147483648,
+      "loader_buffered_input_bytes": 2147483648
+    }
+  ],
+  "loader_callbacks": [
+    {
+      "buffered_input_bytes_after_callback": 0
+    },
+    {
+      "buffered_input_bytes_after_callback": 67108864
+    },
+    {
+      "buffered_input_bytes_after_callback": 0
+    },
+    {
+      "buffered_input_bytes_after_callback": 67108864
+    },
+    {
+      "buffered_input_bytes_after_callback": 0
+    },
+    {
+      "buffered_input_bytes_after_callback": 0
+    }
+  ],
+  "loader_buffered_input_bytes_after_finish": 0
+}

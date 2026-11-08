@@ -1,0 +1,75 @@
+{
+  "physical_devices": [
+    1,
+    5
+  ],
+  "modes": {
+    "A": {
+      "complete_transfer_and_copy_loader_seconds": {
+        "n": 30,
+        "median": 1.5774487245034834,
+        "iqr": 0.011677279257128248,
+        "p95": 1.5912288464976883
+      },
+      "receiver_temporary_allocated_bytes": {
+        "n": 30,
+        "median": 12884905984.0,
+        "iqr": 0.0,
+        "p95": 12884905984.0
+      },
+      "max_collective_bytes": 3221225472,
+      "largest_parameter_bytes": 2147483648,
+      "bucket_bytes": 2147483648,
+      "inventory_bytes": 17179869184,
+      "all_bytes_correct": true
+    },
+    "B": {
+      "complete_transfer_and_copy_loader_seconds": {
+        "n": 30,
+        "median": 1.0729160930022772,
+        "iqr": 0.004285730999981752,
+        "p95": 1.0813977586502006
+      },
+      "receiver_temporary_allocated_bytes": {
+        "n": 30,
+        "median": 4294968832.0,
+        "iqr": 0.0,
+        "p95": 4294968832.0
+      },
+      "max_collective_bytes": 2147483648,
+      "largest_parameter_bytes": 2147483648,
+      "bucket_bytes": 2147483648,
+      "inventory_bytes": 17179869184,
+      "all_bytes_correct": true,
+      "paired_median_latency_change_ci95": [
+        -0.3217563424816933,
+        -0.31790362648360193
+      ],
+      "median_latency_change": -0.31984090745010585
+    },
+    "C": {
+      "complete_transfer_and_copy_loader_seconds": {
+        "n": 30,
+        "median": 1.0337881129999005,
+        "iqr": 0.004331558753619902,
+        "p95": 1.0426407392998953
+      },
+      "receiver_temporary_allocated_bytes": {
+        "n": 30,
+        "median": 6442452992.0,
+        "iqr": 0.0,
+        "p95": 6442452992.0
+      },
+      "max_collective_bytes": 2147483648,
+      "largest_parameter_bytes": 2147483648,
+      "bucket_bytes": 2147483648,
+      "inventory_bytes": 17179869184,
+      "all_bytes_correct": true,
+      "paired_median_latency_change_ci95": [
+        -0.3467437565526508,
+        -0.34158417038944744
+      ],
+      "median_latency_change": -0.34464550451534015
+    }
+  }
+}

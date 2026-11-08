@@ -1,0 +1,8 @@
+{
+  "rank": 0,
+  "tensor_and_event": "passed",
+  "hccl_bytes": 114688,
+  "hccl_byte_equality": "passed",
+  "allocated": 148992,
+  "reserved": 4194304
+}

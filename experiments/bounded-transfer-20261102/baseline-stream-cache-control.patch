@@ -1,0 +1,40 @@
+--- a/vllm_ascend/distributed/weight_transfer/packed_tensor.py
++++ b/vllm_ascend/distributed/weight_transfer/packed_tensor.py
+@@ -5,6 +5,7 @@
+ import math
+ from collections.abc import Callable, Iterator
+ from contextlib import suppress
++from functools import cache
+ from typing import Any
+ 
+ import torch
+@@ -58,6 +59,11 @@
+             raise cleanup_error
+ 
+ 
++@cache
++def _get_streams(device: int, count: int):
++    return [torch.npu.Stream(device=device) for _ in range(count)]
++
++
+ def packed_broadcast_producer(
+     iterator: Iterator[tuple[str, torch.Tensor]],
+     group: Any,
+@@ -94,7 +100,7 @@
+         )
+     target_packed_tensor_size = buffer_size_bytes
+ 
+-    streams = [torch.npu.Stream() for _ in range(num_buffers)]
++    streams = _get_streams(torch.npu.current_device(), num_buffers)
+     # Work already submitted by the caller must precede packing on every slot.
+     # Writers on other streams must join the caller stream before entry.
+     caller_stream = torch.npu.current_stream()
+@@ -230,7 +236,7 @@
+         )
+     target_packed_tensor_size = buffer_size_bytes
+ 
+-    streams = [torch.npu.Stream() for _ in range(num_buffers)]
++    streams = _get_streams(torch.npu.current_device(), num_buffers)
+     caller_stream = torch.npu.current_stream()
+     for stream in streams:
+         stream.wait_stream(caller_stream)

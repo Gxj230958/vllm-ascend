@@ -1,0 +1,7 @@
+[
+  {
+    "allocated_before": 5138841600,
+    "allocator_limit": 10507550720,
+    "headroom_mib": 5120
+  }
+]

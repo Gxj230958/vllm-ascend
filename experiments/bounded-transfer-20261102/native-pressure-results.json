@@ -1,0 +1,16 @@
+[
+  {
+    "mode": "A",
+    "receiver_headroom_mib": 5120,
+    "success": false,
+    "successful_updates": 0,
+    "allocation_oom": true
+  },
+  {
+    "mode": "C",
+    "receiver_headroom_mib": 5120,
+    "success": true,
+    "successful_updates": 10,
+    "allocation_oom": false
+  }
+]

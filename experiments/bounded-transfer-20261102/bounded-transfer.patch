@@ -1,0 +1,1227 @@
+diff --git a/docs/source/user_guide/feature_guide/rl.md b/docs/source/user_guide/feature_guide/rl.md
+index a34cbe9..56efc47 100644
+--- a/docs/source/user_guide/feature_guide/rl.md
++++ b/docs/source/user_guide/feature_guide/rl.md
+@@ -164,6 +164,56 @@ FRACTAL_NZ must be disabled for weight updates. RL mode forces
+ `weight_nz_mode=0`; the weight-transfer start path validates the effective
+ Ascend configuration.
+ 
++#### Bounded HCCL packing
++
++Set `packed_transfer_mode="bounded"` in the trainer's `HCCLTrainerInitInfo`
++to split parameters across fixed-capacity communication buffers. The default
++mode is `"legacy"`. For example, adapt the HCCL example's initialization to:
++
++```python
++HCCLTrainerInitInfo(
++    rank=0,
++    master_address=get_ip(),
++    master_port=get_open_port(),
++    world_size=inference_world_size + 1,
++    packed=True,
++    packed_transfer_mode="bounded",
++    packed_buffer_size_bytes=128 * 2**20,
++    packed_num_buffers=2,
++)
++```
++
++Every collective carries at most `packed_buffer_size_bytes` bytes, including
++when a parameter is larger than a buffer. One buffer performs a serial
++transfer; two buffers allow receiving the next chunk while copying and loading
++the current chunk. Complete parameters are passed to the model's native
++`load_weights()` with independent storage that the loader may retain or modify.
++Complete small parameters share a loader call when their combined storage fits
++within the largest parameter's size. At most one parameter is incomplete.
++If the entire update is smaller than a bucket, slots shrink to the payload size
++and unused slot capacity can hold additional complete loader inputs within the
++same storage budget.
++
++Each bounded transfer session reuses its NPU streams across updates so the
++allocator can reuse storage on those streams. Concurrent updates must use
++separate transfer engines and communicators.
++
++The mode is fixed at initialization and requires supporting versions on both
++trainer and workers. An older worker rejects the bounded initialization
++payload; there is no fallback to legacy packing. Supervise the trainer and
++workers with a process timeout when initializing a transfer group, including
++when testing mixed versions. Failed updates close the bounded transfer session;
++restart the workers or complete a full reload before resuming generation.
++
++Limitations: bounded mode supports a single sender root and non-quantized dense,
++contiguous weights in ND or NCHW storage already on the sender's current NPU.
++Convert internal NPU formats before entering the transfer. Transport-held tensor
++storage is bounded by `K * B + Lmax`, where `K` is the buffer count, `B` is buffer
++capacity, and `Lmax` is the largest parameter. Source weights, model weights,
++loader-retained tensors, runtime workspaces, allocator rounding and reserved
++memory are accounted for separately. A receiver must still have enough memory
++to reconstruct one complete parameter.
++
+ ### Pause and resume generation
+ 
+ With `rl_config.enabled=true`, the server exposes `/pause` and `/resume`.
+diff --git a/tests/e2e/pull_request/two_card/rlhf/state_transitions/test_bounded_hccl.py b/tests/e2e/pull_request/two_card/rlhf/state_transitions/test_bounded_hccl.py
+new file mode 100644
+index 0000000..b71c3aa
+--- /dev/null
++++ b/tests/e2e/pull_request/two_card/rlhf/state_transitions/test_bounded_hccl.py
+@@ -0,0 +1,172 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++"""Bounded reloads must match independent cold loading of a dense Qwen2."""
++
++import os
++import subprocess
++import sys
++from pathlib import Path
++
++import pytest
++import torch
++import torch_npu  # noqa: F401
++
++
++def _snapshot(worker, directory, label):
++    torch.npu.synchronize()
++    parameters = dict(worker.get_model().named_parameters())
++    torch.save(
++        {name: tensor.detach().cpu() for name, tensor in parameters.items()},
++        Path(directory) / f"{label}-parameters.pt",
++    )
++    return {name: tensor.data_ptr() for name, tensor in parameters.items()}
++
++
++class _WorkerClient:
++    def __init__(self, llm):
++        self.llm = llm
++
++    def init_weight_transfer_engine(self, init_info):
++        self.llm.collective_rpc("init_weight_transfer_engine", timeout=120, args=(init_info,))
++
++    def start_weight_update(self):
++        self.llm.collective_rpc("start_weight_update", timeout=120)
++
++    def update_weights(self, update_info):
++        self.llm.collective_rpc("update_weights", timeout=120, args=(update_info,))
++
++    def finish_weight_update(self, weight_version=None):
++        self.llm.collective_rpc("finish_weight_update", timeout=120)
++
++
++def _run(directory: Path, task: str, slots: int, graph: bool):
++    # Platform and Worker initialization must precede model/engine construction.
++    from vllm import LLM, SamplingParams
++
++    llm = LLM(
++        model=str(directory / ("updated" if task == "cold" else "initial")),
++        skip_tokenizer_init=True,
++        distributed_executor_backend="mp",
++        dtype="bfloat16",
++        enforce_eager=not graph,
++        max_model_len=128,
++        max_num_batched_tokens=256,
++        max_num_seqs=4,
++        kv_cache_memory_bytes=256 * 2**20,
++        enable_prefix_caching=False,
++        weight_transfer_config={"backend": "hccl"},
++        additional_config={"weight_nz_mode": 0},
++        compilation_config={"cudagraph_mode": "FULL_DECODE_ONLY", "cudagraph_capture_sizes": [1, 2, 4]}
++        if graph
++        else {},
++        seed=0,
++    )
++    trainer = None
++    try:
++        pointers = llm.collective_rpc(_snapshot, args=(str(directory), task + "-before"))[0]
++        if task == "update":
++            from transformers import AutoModelForCausalLM
++            from vllm.distributed.weight_transfer.base import ModuleSource
++            from vllm.utils.network_utils import get_open_port
++
++            from vllm_ascend.distributed.weight_transfer.hccl_engine import (
++                HCCLTrainerInitInfo,
++                HCCLTrainerWeightTransferEngine,
++            )
++
++            torch.npu.set_device(1)
++            source = AutoModelForCausalLM.from_pretrained(directory / "updated", dtype=torch.bfloat16).to("npu:1")
++            trainer = HCCLTrainerWeightTransferEngine.trainer_init(
++                HCCLTrainerInitInfo(
++                    rank=0,
++                    master_address="127.0.0.1",
++                    master_port=get_open_port(),
++                    world_size=2,
++                    packed=True,
++                    packed_buffer_size_bytes=8192,
++                    packed_num_buffers=slots,
++                    packed_transfer_mode="bounded",
++                ),
++                client=_WorkerClient(llm),
++                source=ModuleSource(source),
++            )
++            first = next(source.parameters()).detach().reshape(-1)[:1]
++            original = first.clone()
++            for step in range(3):
++                first.copy_(original)
++                if step < 2:
++                    first.add_(0.125 * (step + 1))
++                trainer.send_weights()
++        outputs = llm.generate(
++            [{"prompt_token_ids": [1, 17, 23]}, {"prompt_token_ids": [1, 111, 37, 51]}],
++            SamplingParams(temperature=0, max_tokens=8, ignore_eos=True, logprobs=5),
++            use_tqdm=False,
++        )
++        signature = [
++            (
++                list(result.outputs[0].token_ids),
++                [
++                    {token: value.logprob for token, value in distribution.items()}
++                    for distribution in result.outputs[0].logprobs
++                ],
++            )
++            for result in outputs
++        ]
++        final_pointers = llm.collective_rpc(_snapshot, args=(str(directory), task))[0]
++        final = torch.load(directory / f"{task}-parameters.pt", weights_only=True)
++        assert pointers == final_pointers
++        if task == "update":
++            initial = torch.load(directory / "update-before-parameters.pt", weights_only=True)
++            assert any(not torch.equal(initial[name], final[name]) for name in final)
++        torch.save((final, signature), directory / f"{task}.pt")
++    finally:
++        if trainer is not None:
++            trainer.shutdown()
++        llm.llm_engine.engine_core.shutdown()
++
++
++@pytest.mark.skipif(torch.npu.device_count() < 2, reason="Requires two NPUs")
++@pytest.mark.parametrize("slots", [1, 2])
++@pytest.mark.parametrize("graph", [False, True], ids=["eager", "graph"])
++def test_bounded_dense_reload(tmp_path, slots, graph):
++    from transformers import Qwen2Config, Qwen2ForCausalLM
++
++    config = Qwen2Config(
++        vocab_size=512,
++        hidden_size=128,
++        intermediate_size=512,
++        num_hidden_layers=2,
++        num_attention_heads=4,
++        num_key_value_heads=2,
++        max_position_embeddings=256,
++        tie_word_embeddings=False,
++        bos_token_id=1,
++        eos_token_id=2,
++    )
++    for step, name in enumerate(("initial", "updated")):
++        torch.manual_seed(1701 + step)
++        model = Qwen2ForCausalLM(config)
++        with torch.no_grad():
++            for key, parameter in model.named_parameters():
++                parameter.normal_(1.0 if "norm.weight" in key else 0.0, 0.02)
++        model.to(torch.bfloat16).save_pretrained(tmp_path / name)
++    env = dict(os.environ, VLLM_WORKER_MULTIPROC_METHOD="spawn", VLLM_ALLOW_INSECURE_SERIALIZATION="1")
++    for task in ("cold", "update"):
++        subprocess.run(
++            [sys.executable, __file__, str(tmp_path), task, str(slots), str(int(graph))],
++            env=env,
++            timeout=480,
++            check=True,
++        )
++    expected, cold_signature = torch.load(tmp_path / "cold.pt", weights_only=True)
++    actual, updated_signature = torch.load(tmp_path / "update.pt", weights_only=True)
++    assert expected.keys() == actual.keys()
++    for name, tensor in actual.items():
++        reference = expected[name]
++        assert tensor.shape == reference.shape and tensor.dtype == reference.dtype, name
++        assert torch.equal(tensor.reshape(-1).view(torch.uint8), reference.reshape(-1).view(torch.uint8)), name
++    assert updated_signature == cold_signature
++
++
++if __name__ == "__main__":
++    _run(Path(sys.argv[1]), sys.argv[2], int(sys.argv[3]), bool(int(sys.argv[4])))
+diff --git a/tests/ut/distributed/weight_transfer/test_bounded_tensor.py b/tests/ut/distributed/weight_transfer/test_bounded_tensor.py
+new file mode 100644
+index 0000000..b7b6b08
+--- /dev/null
++++ b/tests/ut/distributed/weight_transfer/test_bounded_tensor.py
+@@ -0,0 +1,332 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++"""Run real planning and copying against deferred CPU stream queues."""
++
++import dataclasses
++import types
++import weakref
++from collections import deque
++from unittest.mock import patch
++
++import pytest
++import torch
++
++from vllm_ascend.distributed.weight_transfer import bounded_tensor as bounded
++
++
++@pytest.fixture(autouse=True)
++def base_storage_format():
++    with patch.object(bounded.torch_npu, "get_npu_format", return_value=2, create=True):
++        yield
++
++
++class QueuedRuntime:
++    def __init__(self):
++        self.active = None
++        self.streams = []
++        self.allocations = []
++        self.peak_bytes = 0
++        self.copy = torch.Tensor.copy_
++        self.empty = torch.empty
++        self.caller = self.new_stream()
++
++    def new_stream(self):
++        runtime = self
++
++        class Stream:
++            def __init__(self):
++                self.torch_queue = deque()
++                self.native_queue = deque()
++                self.wait_count = 0
++                self.skip_waits = 0
++
++            def synchronize(self):
++                self.wait_count += 1
++                if self.wait_count <= self.skip_waits:
++                    return
++                # torch_npu work first reaches the native stream on queue flush.
++                self.native_queue.extend(self.torch_queue)
++                self.torch_queue.clear()
++                while self.native_queue:
++                    self.native_queue.popleft()()
++
++            def wait_stream(self, other):
++                self.torch_queue.append(other.synchronize)
++
++            def __enter__(self):
++                self.previous = runtime.active
++                runtime.active = self
++                return self
++
++            def __exit__(self, *args):
++                runtime.active = self.previous
++
++        stream = Stream()
++        self.streams.append(stream)
++        return stream
++
++    def allocate(self, *args, **kwargs):
++        if str(kwargs.get("device", "")).startswith("npu"):
++            kwargs["device"] = "cpu"
++        tensor = self.empty(*args, **kwargs)
++        self.allocations.append((weakref.ref(tensor), tensor.nbytes))
++        self.peak_bytes = max(self.peak_bytes, sum(size for ref, size in self.allocations if ref() is not None))
++        return tensor
++
++    def copy_(self, destination, source, *args, **kwargs):
++        if self.active is None:
++            return self.copy(destination, source, *args, **kwargs)
++        self.active.torch_queue.append(lambda: self.copy(destination, source, *args, **kwargs))
++        return destination
++
++    def install(self):
++        fake = types.SimpleNamespace(
++            Stream=self.new_stream,
++            current_stream=lambda: self.caller,
++            stream=lambda stream: stream,
++        )
++        return (
++            patch.object(torch, "npu", fake, create=True),
++            patch.object(torch, "empty", self.allocate),
++            patch.object(torch.Tensor, "copy_", lambda dst, src, *a, **kw: self.copy_(dst, src, *a, **kw)),
++            patch.object(torch.Tensor, "record_stream", lambda *args: None),
++        )
++
++
++class Wire:
++    def __init__(self, runtime, payloads=None):
++        self.runtime = runtime
++        self.payloads = [] if payloads is None else deque(payloads)
++        self.collective_bytes = []
++
++    def broadcast(self, tensor, src, stream):
++        self.collective_bytes.append(tensor.nbytes)
++        if isinstance(self.payloads, list):
++            stream.native_queue.append(lambda: self.payloads.append(tensor.clone()))
++        else:
++            payload = self.payloads.popleft()
++            assert tensor.nbytes == payload.nbytes
++            stream.native_queue.append(lambda: self.runtime.copy(tensor, payload))
++
++
++def weights(step=0):
++    output = []
++    for index, (dtype, shape) in enumerate(
++        [
++            (torch.uint8, (3,)),
++            (torch.float32, ()),
++            (torch.float64, (0, 4)),
++            (torch.float64, (37,)),
++            (torch.bfloat16, (5, 5)),
++            (torch.int16, (1,)),
++        ]
++    ):
++        count = 1
++        for size in shape:
++            count *= size
++        raw = (torch.arange(count * dtype.itemsize) * 37 + step * 13 + index).to(torch.uint8)
++        output.append((f"weight{index}", raw.view(dtype).reshape(shape)))
++    return output
++
++
++def metadata(items):
++    return iter((name, (tensor.shape, tensor.dtype)) for name, tensor in items)
++
++
++def produce(items, capacity, slots):
++    runtime = QueuedRuntime()
++    wire = Wire(runtime)
++    npu, empty, copy, record = runtime.install()
++    with npu, empty, copy, record:
++        bounded.bounded_broadcast_producer(iter(items), metadata(items), wire, 0, capacity, slots)
++    assert max(wire.collective_bytes, default=0) <= capacity
++    assert runtime.peak_bytes <= slots * capacity
++    return wire.payloads
++
++
++def consume(items, payloads, capacity, slots, configure=None, callback=None):
++    runtime = QueuedRuntime()
++    wire = Wire(runtime, payloads)
++    observed = []
++
++    def load(batch):
++        for name, tensor in batch:
++            # Emulate a loader that reads asynchronously on its active stream.
++            target = torch.empty_like(tensor)
++            target.copy_(tensor)
++            observed.append((name, target))
++        if callback is not None:
++            callback(batch)
++
++    original_new_stream = runtime.new_stream
++
++    def new_stream():
++        stream = original_new_stream()
++        if configure is not None:
++            configure(stream, len(runtime.streams) - 1)
++        return stream
++
++    runtime.new_stream = new_stream
++    npu, empty, copy, record = runtime.install()
++    with npu, empty, copy, record:
++        bounded.bounded_broadcast_consumer(metadata(items), wire, 0, load, capacity, slots)
++    assert not wire.payloads
++    assert runtime.peak_bytes <= slots * capacity + max((tensor.nbytes for _, tensor in items), default=0)
++    return observed, runtime
++
++
++def assert_bytes(actual, expected):
++    assert [name for name, _ in actual] == [name for name, _ in expected]
++    for (_, lhs), (_, rhs) in zip(actual, expected):
++        assert lhs.shape == rhs.shape and lhs.dtype == rhs.dtype
++        assert torch.equal(lhs.reshape(-1).view(torch.uint8), rhs.reshape(-1).view(torch.uint8))
++
++
++@pytest.mark.parametrize("capacity", [1, 8, 13, 64])
++@pytest.mark.parametrize("slots", [1, 2, 3])
++def test_roundtrip_and_storage_bound(capacity, slots):
++    for step in range(3):
++        items = weights(step)
++        payloads = produce(items, capacity, slots)
++        actual, _ = consume(items, payloads, capacity, slots)
++        assert_bytes(actual, items)
++
++
++def test_session_streams_reused_with_changed_weights():
++    runtime = QueuedRuntime()
++    send_streams = tuple(runtime.new_stream() for _ in range(2))
++    receive_streams = tuple(runtime.new_stream() for _ in range(2))
++    copy_stream = runtime.new_stream()
++    npu, empty, copy, record = runtime.install()
++    with npu, empty, copy, record:
++        for step in range(3):
++            items = weights(step)
++            sending = Wire(runtime)
++            bounded.bounded_broadcast_producer(iter(items), metadata(items), sending, 0, 13, 2, streams=send_streams)
++            receiving = Wire(runtime, sending.payloads)
++            actual = []
++
++            def load(batch, observed=actual):
++                for name, tensor in batch:
++                    target = torch.empty_like(tensor)
++                    target.copy_(tensor)
++                    observed.append((name, target))
++
++            bounded.bounded_broadcast_consumer(
++                metadata(items), receiving, 0, load, 13, 2, streams=receive_streams, copy_stream=copy_stream
++            )
++            assert_bytes(actual, items)
++    assert len(runtime.streams) == 6
++
++
++@pytest.mark.parametrize("items", [[], [("zero", torch.empty(0, 4))]])
++def test_zero_element_updates(items):
++    payloads = produce(items, 17, 2)
++    assert not payloads
++    actual, _ = consume(items, payloads, 17, 2)
++    assert_bytes(actual, items)
++
++
++def test_loader_retains_independent_storage():
++    items = weights()
++    payloads = produce(items, 13, 2)
++    retained = []
++    # Retention is loader-owned and is measured separately from the transport.
++    runtime = QueuedRuntime()
++    wire = Wire(runtime, payloads)
++    npu, empty, copy, record = runtime.install()
++    with npu, empty, copy, record:
++        bounded.bounded_broadcast_consumer(metadata(items), wire, 0, retained.extend, 13, 2)
++    assert_bytes(retained, items)
++    pointers = [tensor.data_ptr() for _, tensor in retained if tensor.numel()]
++    assert len(pointers) == len(set(pointers))
++    retained[0][1].fill_(0)
++    assert_bytes(retained[1:], items[1:])
++
++
++def test_noncontiguous_source_rejected():
++    items = [("transposed", torch.arange(16).reshape(4, 4).T)]
++    with pytest.raises(ValueError, match="contiguous"):
++        produce(items, 13, 2)
++
++
++def test_internal_source_format_rejected_before_view():
++    items = [("blocked", torch.arange(16).reshape(4, 4))]
++    with (
++        patch.object(bounded.torch_npu, "get_npu_format", return_value=29),
++        patch.object(torch.Tensor, "reshape", side_effect=AssertionError("must not convert the parameter")),
++        pytest.raises(ValueError, match="source storage"),
++    ):
++        produce(items, 13, 2)
++
++
++def test_complete_small_parameters_share_loader_calls_within_bound():
++    items = [("large", torch.arange(256, dtype=torch.uint8))]
++    items.extend((f"small{index}", torch.arange(32, dtype=torch.uint8)) for index in range(10))
++    payloads = produce(items, 64, 2)
++    batches = []
++    actual, _ = consume(items, payloads, 64, 2, callback=lambda batch: batches.append([name for name, _ in batch]))
++    assert batches == [["large"], [f"small{index}" for index in range(8)], ["small8", "small9"]]
++    assert_bytes(actual, items)
++
++
++def test_short_update_uses_unused_slot_budget_for_complete_inputs():
++    items = weights()
++    payloads = produce(items, 4096, 2)
++    batches = []
++    actual, _ = consume(items, payloads, 4096, 2, callback=lambda batch: batches.append([name for name, _ in batch]))
++    assert batches == [[name for name, _ in items]]
++    assert_bytes(actual, items)
++
++
++@pytest.mark.parametrize("fault", ["completion", "offset", "reuse"])
++def test_negative_controls_detect_corruption(fault):
++    items = [("large", torch.arange(256, dtype=torch.uint8))]
++    payloads = produce(items, 16, 2)
++
++    def configure(stream, index):
++        if fault == "completion" and index in (1, 2):
++            stream.skip_waits = 100
++        if fault == "reuse" and index == 3:
++            # Preserve the final loader wait; remove the preceding reuse waits.
++            stream.skip_waits = 16
++
++    original_plan = bounded.plan_transfer
++
++    def corrupt_plan(*args):
++        for index, chunk in enumerate(original_plan(*args)):
++            if index == 1:
++                fragment = dataclasses.replace(chunk.fragments[0], parameter_offset=32)
++                chunk = dataclasses.replace(chunk, fragments=(fragment,))
++            yield chunk
++
++    plan = corrupt_plan if fault == "offset" else original_plan
++    with patch.object(bounded, "plan_transfer", plan):
++        actual, _ = consume(items, payloads, 16, 2, configure=configure)
++    with pytest.raises(AssertionError):
++        assert_bytes(actual, items)
++
++
++@pytest.mark.parametrize("error_type", [RuntimeError, GeneratorExit])
++def test_callback_failure_drains_prefetched_collective(error_type):
++    items = [("first", torch.arange(16)), ("second", torch.arange(16) + 20)]
++    payloads = produce(items, 128, 2)
++    runtime = QueuedRuntime()
++    wire = Wire(runtime, payloads)
++
++    def fail(batch):
++        raise error_type("loader failed")
++
++    npu, empty, copy, record = runtime.install()
++    with npu, empty, copy, record, pytest.raises(error_type, match="loader failed"):
++        bounded.bounded_broadcast_consumer(metadata(items), wire, 0, fail, 128, 2)
++    assert all(not stream.native_queue and not stream.torch_queue for stream in runtime.streams)
++
++
++def test_out_of_order_source_rejected():
++    items = weights()
++    runtime = QueuedRuntime()
++    wire = Wire(runtime)
++    npu, empty, copy, record = runtime.install()
++    with npu, empty, copy, record, pytest.raises(ValueError, match="metadata"):
++        bounded.bounded_broadcast_producer(iter(reversed(items)), metadata(items), wire, 0, 13, 2)
+diff --git a/tests/ut/distributed/weight_transfer/test_hccl_engine.py b/tests/ut/distributed/weight_transfer/test_hccl_engine.py
+index 5929218..2e597ec 100644
+--- a/tests/ut/distributed/weight_transfer/test_hccl_engine.py
++++ b/tests/ut/distributed/weight_transfer/test_hccl_engine.py
+@@ -28,7 +28,10 @@ from vllm_ascend.distributed.weight_transfer.hccl_engine import (
+ def _npu_context():
+     with (
+         patch.object(
+-            torch, "npu", SimpleNamespace(device=lambda _: nullcontext(), current_stream=MagicMock()), create=True
++            torch,
++            "npu",
++            SimpleNamespace(device=lambda _: nullcontext(), current_stream=MagicMock(), Stream=MagicMock()),
++            create=True,
+         ),
+         patch("torch.accelerator.current_device_index", return_value=0),
+     ):
+@@ -41,6 +44,7 @@ def _make_engine():
+     engine.model_config = MagicMock()
+     engine.device = torch.device("cpu")
+     engine._last_hccl_update_info = {}
++    engine._bounded_streams = None
+     return engine
+ 
+ 
+@@ -380,3 +384,118 @@ def test_worker_metadata_is_per_model_and_cleared_on_reinit():
+         engine.model_update_group.broadcast.reset_mock()
+         engine.receive_weights(full)
+         engine.model_update_group.broadcast.assert_called_once()
++
++
++@pytest.mark.parametrize("mode,packed", [("unknown", True), ("bounded", False), ("bounded", None)])
++def test_rejects_invalid_bounded_configuration(mode, packed):
++    args = dict(master_address="host", master_port=1234, world_size=2, packed=packed, packed_transfer_mode=mode)
++    with pytest.raises(ValueError, match="packed"):
++        HCCLWeightTransferInitInfo(rank_offset=1, **args)
++    with pytest.raises(ValueError, match="packed"):
++        HCCLTrainerInitInfo(rank=0, **args)
++
++
++def test_bounded_handshake_is_explicit_and_rejected_by_legacy_peer():
++    info = HCCLTrainerInitInfo(
++        rank=0, master_address="host", master_port=1234, world_size=2, packed_transfer_mode="bounded"
++    )
++    client = MagicMock()
++    group = MagicMock()
++
++    def legacy_peer(payload):
++        assert payload["packed_transfer_mode"] == "bounded"
++        NCCLWeightTransferInitInfo(**payload)
++
++    client.init_weight_transfer_engine.side_effect = legacy_peer
++    with (
++        patch("vllm_ascend.distributed.weight_transfer.hccl_common.trainer_init", return_value=group),
++        pytest.raises(TypeError, match="packed_transfer_mode"),
++    ):
++        HCCLTrainerWeightTransferEngine.trainer_init(info, client=client, source=MagicMock())
++    group.close.assert_called_once_with()
++
++
++def test_bounded_worker_uses_native_loader_and_metadata_cache():
++    engine = _make_engine()
++    engine.model_config.quantization = None
++    engine._init_info = HCCLWeightTransferInitInfo(
++        master_address="host",
++        master_port=1234,
++        rank_offset=1,
++        world_size=2,
++        packed=True,
++        packed_transfer_mode="bounded",
++        packed_buffer_size_bytes=13,
++        packed_num_buffers=2,
++    )
++    engine.model_update_group = MagicMock()
++    full = HCCLWeightTransferUpdateInfo(names=["w"], dtype_names=["float32"], shapes=[[32]])
++    received = []
++
++    def receive(**kwargs):
++        received.append(list(kwargs["metadata"]))
++        assert kwargs["post_unpack_func"] == engine.model.load_weights
++        assert kwargs["buffer_size_bytes"] == 13
++        assert kwargs["num_buffers"] == 2
++
++    with patch("vllm_ascend.distributed.weight_transfer.hccl_engine.bounded_broadcast_consumer", side_effect=receive):
++        engine.receive_weights(full)
++        engine.receive_weights(HCCLWeightTransferUpdateInfo(names=[], dtype_names=[], shapes=[]))
++    assert received == [[("w", ([32], torch.float32))]] * 2
++    assert torch.npu.Stream.call_count == 3
++    with pytest.raises(TypeError, match="packed_transfer_mode"):
++        HCCLWeightTransferUpdateInfo(names=[], dtype_names=[], shapes=[], packed_transfer_mode="legacy")
++
++
++@pytest.mark.parametrize("name,value", [("packed_buffer_size_bytes", 64), ("packed_num_buffers", 3)])
++def test_bounded_defaults_are_fixed_for_the_session(name, value):
++    engine = _make_engine()
++    engine._init_info = HCCLWeightTransferInitInfo(
++        master_address="host",
++        master_port=1234,
++        rank_offset=1,
++        world_size=2,
++        packed=True,
++        packed_transfer_mode="bounded",
++    )
++    with pytest.raises(ValueError, match=name):
++        engine._wire_params(HCCLWeightTransferUpdateInfo(**{name: value}))
++
++
++def test_bounded_failure_closes_worker_session():
++    engine = _make_engine()
++    engine._init_info = HCCLWeightTransferInitInfo(
++        master_address="host",
++        master_port=1234,
++        rank_offset=1,
++        world_size=2,
++        packed=True,
++        packed_transfer_mode="bounded",
++    )
++    group = engine.model_update_group = MagicMock()
++    with (
++        patch.object(NCCLWeightTransferEngine, "update_weights", side_effect=RuntimeError("copy failed")),
++        pytest.raises(RuntimeError, match="copy failed"),
++    ):
++        engine.update_weights({})
++    assert engine.model_update_group is None
++    group.close.assert_called_once_with()
++
++
++def test_bounded_init_rejects_quantized_model_before_rendezvous():
++    engine = _make_engine()
++    engine.model_config.quantization = "awq"
++    info = HCCLWeightTransferInitInfo(
++        master_address="host",
++        master_port=1234,
++        rank_offset=1,
++        world_size=2,
++        packed=True,
++        packed_transfer_mode="bounded",
++    )
++    with (
++        patch.object(engine, "_stateless_init_process_group") as rendezvous,
++        pytest.raises(ValueError, match="non-quantized"),
++    ):
++        engine.init_transfer_engine(info)
++    rendezvous.assert_not_called()
+diff --git a/vllm_ascend/distributed/weight_transfer/bounded_tensor.py b/vllm_ascend/distributed/weight_transfer/bounded_tensor.py
+new file mode 100644
+index 0000000..fe590d6
+--- /dev/null
++++ b/vllm_ascend/distributed/weight_transfer/bounded_tensor.py
+@@ -0,0 +1,258 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++"""Byte-bounded HCCL transfers with independently owned loader inputs."""
++
++import math
++from collections.abc import Callable, Iterator
++from dataclasses import dataclass
++from typing import Any
++
++import torch
++import torch_npu
++
++from vllm_ascend.distributed.weight_transfer.packed_tensor import _drain_packed_streams
++
++WeightMetadata = tuple[str, tuple[list[int] | tuple[int, ...], torch.dtype]]
++
++
++@dataclass(frozen=True)
++class TensorFragment:
++    name: str
++    shape: tuple[int, ...]
++    dtype: torch.dtype
++    parameter_offset: int
++    buffer_offset: int
++    nbytes: int
++    complete: bool
++
++
++@dataclass(frozen=True)
++class TransferChunk:
++    fragments: tuple[TensorFragment, ...]
++    nbytes: int
++
++
++def plan_transfer(metadata: Iterator[WeightMetadata], capacity: int) -> Iterator[TransferChunk]:
++    """Partition ordered parameters without exceeding a collective's capacity.
++
++    Zero-element parameters have a zero-byte fragment, including when the
++    entire update is empty. A scalar has one element. Fragment offsets are
++    byte offsets; mixed dtypes need no padding on the wire.
++    """
++    if capacity <= 0:
++        raise ValueError("capacity must be positive")
++    fragments: list[TensorFragment] = []
++    cursor = 0
++    for name, (shape, dtype) in metadata:
++        shape = tuple(shape)
++        if any(dimension < 0 for dimension in shape):
++            raise ValueError(f"negative dimension for parameter {name!r}: {shape}")
++        size = math.prod(shape) * dtype.itemsize
++        offset = 0
++        while True:
++            count = min(size - offset, capacity - cursor)
++            fragments.append(TensorFragment(name, shape, dtype, offset, cursor, count, offset + count == size))
++            offset += count
++            cursor += count
++            if cursor == capacity:
++                yield TransferChunk(tuple(fragments), cursor)
++                fragments = []
++                cursor = 0
++            if offset == size:
++                break
++    if fragments:
++        yield TransferChunk(tuple(fragments), cursor)
++
++
++def _source_bytes(item: tuple[str, torch.Tensor], fragment: TensorFragment, device: torch.device) -> torch.Tensor:
++    name, tensor = item
++    if name != fragment.name or tuple(tensor.shape) != fragment.shape or tensor.dtype != fragment.dtype:
++        raise ValueError(f"source parameter {name!r} disagrees with metadata for {fragment.name!r}")
++    if tensor.device != device or tensor.layout != torch.strided or tensor.is_quantized or not tensor.is_contiguous():
++        raise ValueError("bounded transfers require contiguous, non-quantized tensors on the current NPU")
++    if torch_npu.get_npu_format(tensor) not in (0, 2):
++        raise ValueError("bounded transfers require NCHW or ND source storage; convert internal NPU formats beforehand")
++    return tensor.detach().reshape(-1).view(torch.uint8)
++
++
++def bounded_broadcast_producer(
++    iterator: Iterator[tuple[str, torch.Tensor]],
++    metadata: Iterator[WeightMetadata],
++    group: Any,
++    src: int,
++    buffer_size_bytes: int,
++    num_buffers: int,
++    *,
++    streams: tuple[Any, ...] | None = None,
++) -> None:
++    """Copy source byte views into fixed-capacity slots and broadcast them.
++
++    Source writes must be ready on the caller stream. Lazy sources run on the
++    active packing stream. Noncontiguous or off-device inputs are rejected
++    before any conversion can allocate an entire parameter copy.
++    """
++    if num_buffers <= 0:
++        raise ValueError("num_buffers must be positive")
++    metadata = tuple(metadata)
++    capacity = min(buffer_size_bytes, sum(math.prod(shape) * dtype.itemsize for _, (shape, dtype) in metadata))
++    chunks = plan_transfer(iter(metadata), buffer_size_bytes)
++    chunk = next(chunks, None)
++    if chunk is None:
++        return
++    caller = torch.npu.current_stream()
++    if streams is None:
++        streams = tuple(torch.npu.Stream() for _ in range(num_buffers))
++    buffers = [torch.empty(capacity, dtype=torch.uint8, device="npu") for _ in streams]
++    for stream in streams:
++        stream.wait_stream(caller)
++    current = None
++    previous = None
++    body_error = None
++    index = 0
++    try:
++        while chunk is not None:
++            slot = index % num_buffers
++            stream, buffer = streams[slot], buffers[slot]
++            stream.synchronize()
++            with torch.npu.stream(stream):
++                for fragment in chunk.fragments:
++                    if fragment.parameter_offset == 0:
++                        current = _source_bytes(next(iterator), fragment, buffer.device)
++                    assert current is not None
++                    start, source, count = fragment.buffer_offset, fragment.parameter_offset, fragment.nbytes
++                    buffer[start : start + count].copy_(current[source : source + count])
++                    current.record_stream(stream)
++                    if fragment.complete:
++                        current = None
++            if chunk.nbytes:
++                # Packing on this slot may overlap the previous collective.
++                # Native HCCL must see completed torch_npu packing operations.
++                stream.synchronize()
++                if previous is not None and previous is not stream:
++                    previous.synchronize()
++                group.broadcast(buffer[: chunk.nbytes], src=src, stream=stream)
++                previous = stream
++            index += 1
++            chunk = next(chunks, None)
++        if next(iterator, None) is not None:
++            raise ValueError("source contains parameters absent from the metadata")
++    except BaseException as exc:
++        body_error = exc
++        raise
++    finally:
++        _drain_packed_streams(list(streams), buffers, body_error)
++
++
++def bounded_broadcast_consumer(
++    metadata: Iterator[WeightMetadata],
++    group: Any,
++    src: int,
++    post_unpack_func: Callable[[list[tuple[str, torch.Tensor]]], None],
++    buffer_size_bytes: int,
++    num_buffers: int,
++    *,
++    streams: tuple[Any, ...] | None = None,
++    copy_stream: Any = None,
++) -> None:
++    """Reassemble owning parameters within a fixed transport storage budget.
++
++    Transport-held tensor storage is at most K * B + Lmax: K receive slots of
++    B bytes and owning inputs totalling at most Lmax bytes. When an entire
++    update is smaller than B, slots shrink to its payload size and unused
++    slot capacity can hold additional complete loader inputs. At most one
++    parameter is incomplete; completed small parameters share loader calls.
++    Loader-retained tensors,
++    model/source weights, runtime workspaces and allocator rounding/reserved
++    memory are separate. Loader inputs never alias a reusable receive slot.
++
++    K=1 waits serially. K>=2 receives the next chunk while copying/loading the
++    current chunk. Loader work on other streams must join the active stream
++    before returning, matching the packed loader contract.
++    """
++    if num_buffers <= 0:
++        raise ValueError("num_buffers must be positive")
++    metadata = tuple(metadata)
++    largest = max((math.prod(shape) * dtype.itemsize for _, (shape, dtype) in metadata), default=0)
++    capacity = min(buffer_size_bytes, sum(math.prod(shape) * dtype.itemsize for _, (shape, dtype) in metadata))
++    weight_budget = largest + num_buffers * (buffer_size_bytes - capacity)
++    chunks = plan_transfer(iter(metadata), buffer_size_bytes)
++    chunk = next(chunks, None)
++    if chunk is None:
++        return
++    caller = torch.npu.current_stream()
++    if streams is None:
++        streams = tuple(torch.npu.Stream() for _ in range(num_buffers))
++    if copy_stream is None:
++        copy_stream = torch.npu.Stream()
++    buffers = [torch.empty(capacity, dtype=torch.uint8, device="npu") for _ in streams]
++    for stream in (*streams, copy_stream):
++        stream.wait_stream(caller)
++        stream.synchronize()
++    weight = None
++    raw = None
++    pending: list[tuple[str, torch.Tensor]] = []
++    pending_bytes = 0
++    body_error = None
++
++    def load_pending() -> None:
++        nonlocal pending, pending_bytes
++        if pending:
++            post_unpack_func(pending)
++            # Release transport ownership only after the loader's reads and
++            # derived-state writes complete. Retention then belongs to it.
++            copy_stream.synchronize()
++            pending = []
++            pending_bytes = 0
++
++    def receive(next_chunk: TransferChunk, slot: int) -> None:
++        if next_chunk.nbytes:
++            group.broadcast(buffers[slot][: next_chunk.nbytes], src=src, stream=streams[slot])
++
++    try:
++        index = 0
++        receive(chunk, 0)
++        while chunk is not None:
++            slot = index % num_buffers
++            # External HCCL completion precedes reads by torch_npu.
++            streams[slot].synchronize()
++            following = next(chunks, None)
++            if following is not None and num_buffers > 1:
++                receive(following, (index + 1) % num_buffers)
++            with torch.npu.stream(copy_stream):
++                for fragment in chunk.fragments:
++                    if fragment.parameter_offset == 0:
++                        size = math.prod(fragment.shape) * fragment.dtype.itemsize
++                        if pending_bytes + size > weight_budget:
++                            load_pending()
++                        weight = torch.empty(fragment.shape, dtype=fragment.dtype, device="npu")
++                        raw = weight.reshape(-1).view(torch.uint8)
++                    assert weight is not None and raw is not None
++                    start, target, count = fragment.buffer_offset, fragment.parameter_offset, fragment.nbytes
++                    raw[target : target + count].copy_(buffers[slot][start : start + count])
++                    if fragment.complete:
++                        weight.record_stream(copy_stream)
++                        weight.record_stream(caller)
++                        pending.append((fragment.name, weight))
++                        pending_bytes += weight.numel() * weight.element_size()
++                        weight = None
++                        raw = None
++                        if pending_bytes == weight_budget:
++                            load_pending()
++            # Slot reuse must wait even when a parameter spans many chunks.
++            copy_stream.synchronize()
++            if following is not None and num_buffers == 1:
++                receive(following, slot)
++            chunk = following
++            index += 1
++        with torch.npu.stream(copy_stream):
++            load_pending()
++    except BaseException as exc:
++        body_error = exc
++        raise
++    finally:
++        owned = [tensor for _, tensor in pending]
++        if weight is not None:
++            owned.append(weight)
++        if not owned:
++            owned.append(torch.empty(0, dtype=torch.uint8, device="npu"))
++        _drain_packed_streams([copy_stream] * len(owned) + list(streams), owned + buffers, body_error)
+diff --git a/vllm_ascend/distributed/weight_transfer/hccl_common.py b/vllm_ascend/distributed/weight_transfer/hccl_common.py
+index 2eb4863..ce19107 100644
+--- a/vllm_ascend/distributed/weight_transfer/hccl_common.py
++++ b/vllm_ascend/distributed/weight_transfer/hccl_common.py
+@@ -9,7 +9,7 @@ inline in the engine, mirroring `nccl_common.worker_init_process_group`).
+ """
+ 
+ from dataclasses import dataclass, field
+-from typing import TYPE_CHECKING, Any
++from typing import TYPE_CHECKING, Any, Literal
+ 
+ import torch
+ from vllm.distributed.weight_transfer.nccl_common import NCCLWeightTransferInitInfo
+@@ -28,6 +28,13 @@ def _validate_packed_params(info: Any) -> None:
+             raise ValueError(f"`{name}` must be a positive integer or None, got {value!r}")
+ 
+ 
++def _validate_transfer_mode(mode: str | None, packed: bool | None) -> None:
++    if mode not in (None, "legacy", "bounded"):
++        raise ValueError("`packed_transfer_mode` must be 'legacy' or 'bounded'")
++    if mode == "bounded" and packed is not True:
++        raise ValueError("bounded transfers require `packed=True` fixed at initialization")
++
++
+ @dataclass(kw_only=True)
+ class HCCLWeightTransferInitInfo(NCCLWeightTransferInitInfo):
+     """Upstream worker init contract with TCP rendezvous and optional packed settings.
+@@ -42,12 +49,15 @@ class HCCLWeightTransferInitInfo(NCCLWeightTransferInitInfo):
+     packed: bool | None = None  # type: ignore[assignment]
+     packed_buffer_size_bytes: int | None = None  # type: ignore[assignment]
+     packed_num_buffers: int | None = None  # type: ignore[assignment]
++    # An omitted field uses the legacy protocol and stays absent on the wire.
++    packed_transfer_mode: Literal["legacy", "bounded"] | None = None
+ 
+     def __post_init__(self) -> None:
+         if self.nccl_unique_id_b64 is not None:
+             raise ValueError("HCCL weight transfer requires TCP rendezvous; `nccl_unique_id_b64` is not supported")
+         super().__post_init__()
+         _validate_packed_params(self)
++        _validate_transfer_mode(self.packed_transfer_mode, self.packed)
+ 
+ 
+ def stateless_init_process_group(
+diff --git a/vllm_ascend/distributed/weight_transfer/hccl_engine.py b/vllm_ascend/distributed/weight_transfer/hccl_engine.py
+index 195a606..62a1bc4 100644
+--- a/vllm_ascend/distributed/weight_transfer/hccl_engine.py
++++ b/vllm_ascend/distributed/weight_transfer/hccl_engine.py
+@@ -4,14 +4,15 @@
+ 
+ Reload lifecycle, ``send_weights`` orchestration, metadata checks and the worker
+ init payload stay upstream. Only NPU operations, the HCCL rendezvous and the
+-legacy per-update packed wire parameters are local. The packed producer/consumer
+-and the layerwise cross-chunk behaviour are unchanged.
++legacy per-update packed wire parameters are local. Bounded packing is an
++initialization-time option that limits collective size while preserving native
++parameter loading and independent loader ownership.
+ """
+ 
+ from concurrent.futures import ThreadPoolExecutor
+ from contextlib import suppress
+ from dataclasses import dataclass
+-from typing import TYPE_CHECKING, Any, ClassVar
++from typing import TYPE_CHECKING, Any, ClassVar, Literal
+ 
+ import torch
+ from typing_extensions import Self
+@@ -29,9 +30,14 @@ from vllm.distributed.weight_transfer.nccl_engine import (
+ )
+ 
+ from vllm_ascend.distributed.weight_transfer import hccl_common
++from vllm_ascend.distributed.weight_transfer.bounded_tensor import (
++    bounded_broadcast_consumer,
++    bounded_broadcast_producer,
++)
+ from vllm_ascend.distributed.weight_transfer.hccl_common import (
+     HCCLWeightTransferInitInfo,
+     _validate_packed_params,
++    _validate_transfer_mode,
+ )
+ from vllm_ascend.distributed.weight_transfer.packed_tensor import (
+     DEFAULT_PACKED_BUFFER_SIZE_BYTES,
+@@ -49,9 +55,11 @@ class HCCLTrainerInitInfo(NCCLTrainerInitInfo):
+     """Upstream trainer contract, including packed transfers by default."""
+ 
+     backend: ClassVar[str] = "hccl"
++    packed_transfer_mode: Literal["legacy", "bounded"] = "legacy"
+ 
+     def __post_init__(self) -> None:
+         _validate_packed_params(self)
++        _validate_transfer_mode(self.packed_transfer_mode, self.packed)
+ 
+ 
+ @dataclass
+@@ -75,6 +83,7 @@ class HCCLWeightTransferEngine(NCCLWeightTransferEngine):
+ 
+     if TYPE_CHECKING:
+         model_update_group: PyHcclCommunicator | None  # type: ignore[assignment]
++        _bounded_streams: tuple[Any, ...] | None
+ 
+     init_info_cls = HCCLWeightTransferInitInfo
+     update_info_cls = HCCLWeightTransferUpdateInfo
+@@ -93,6 +102,8 @@ class HCCLWeightTransferEngine(NCCLWeightTransferEngine):
+         self._last_hccl_update_info: dict[torch.nn.Module, HCCLWeightTransferUpdateInfo] = {}
+         if init_info.world_size < 2:
+             raise ValueError("HCCL weight transfer requires at least one trainer and one worker")
++        if init_info.packed_transfer_mode == "bounded" and self.model_config.quantization is not None:
++            raise ValueError("bounded transfers support non-quantized models")
+         self._init_info = init_info
+         # Preserve the parent's handshake attributes, resetting omitted values
+         # on re-init. _wire_params still supports legacy per-update overrides.
+@@ -132,6 +143,8 @@ class HCCLWeightTransferEngine(NCCLWeightTransferEngine):
+         )
+         for name in params:
+             fixed, requested = getattr(self._init_info, name), getattr(update, name)
++            if fixed is None and self._init_info.packed_transfer_mode == "bounded":
++                fixed = params[name]
+             if fixed is not None and requested is not None and fixed != requested:
+                 raise ValueError(
+                     f"HCCL update `{name}` conflicts with the value fixed at init: init={fixed!r}, update={requested!r}"
+@@ -161,7 +174,24 @@ class HCCLWeightTransferEngine(NCCLWeightTransferEngine):
+         # any stream: the packed helpers resolve the ambient device.
+         with torch.npu.device(self.device), disable_mtp_completeness_check():
+             metadata = zip(update_info.names, update_info.shapes, update_info.dtype_names)
+-            if params["packed"]:
++            if self._init_info.packed_transfer_mode == "bounded":
++                if self.model_config.quantization is not None:
++                    raise ValueError("bounded transfers support non-quantized models")
++                if self._bounded_streams is None:
++                    # Allocator caches are stream-specific. Reuse this session's
++                    # streams so repeated updates can reuse freed weight storage.
++                    self._bounded_streams = tuple(torch.npu.Stream() for _ in range(params["packed_num_buffers"] + 1))
++                bounded_broadcast_consumer(
++                    metadata=((name, (shape, getattr(torch, dtype))) for name, shape, dtype in metadata),
++                    group=self.model_update_group,
++                    src=0,
++                    post_unpack_func=self.model.load_weights,
++                    buffer_size_bytes=params["packed_buffer_size_bytes"],
++                    num_buffers=params["packed_num_buffers"],
++                    streams=self._bounded_streams[:-1],
++                    copy_stream=self._bounded_streams[-1],
++                )
++            elif params["packed"]:
+                 packed_broadcast_consumer(
+                     iterator=((name, (shape, getattr(torch, dtype))) for name, shape, dtype in metadata),
+                     group=self.model_update_group,
+@@ -180,13 +210,20 @@ class HCCLWeightTransferEngine(NCCLWeightTransferEngine):
+         """Run the inherited wrapper on the worker's assigned NPU."""
+         # The inherited wrapper synchronizes the ambient device at the end.
+         with torch.npu.device(self.device):
+-            super().update_weights(update_info)
++            try:
++                super().update_weights(update_info)
++            except BaseException:
++                if self.model_update_group is not None and self._init_info.packed_transfer_mode == "bounded":
++                    with suppress(Exception):
++                        self.shutdown()
++                raise
+ 
+     def shutdown(self) -> None:
+         # PyHcclCommunicator releases its comm through `close()`, not `destroy()`.
+         group, self.model_update_group = getattr(self, "model_update_group", None), None
+         if group is not None:
+             group.close()
++        self._bounded_streams = None
+ 
+ 
+ class HCCLTrainerWeightTransferEngine(NCCLTrainerWeightTransferEngine):
+@@ -207,7 +244,9 @@ class HCCLTrainerWeightTransferEngine(NCCLTrainerWeightTransferEngine):
+         packed: bool = True,
+         packed_buffer_size_bytes: int = DEFAULT_PACKED_BUFFER_SIZE_BYTES,
+         packed_num_buffers: int = DEFAULT_PACKED_NUM_BUFFERS,
++        packed_transfer_mode: Literal["legacy", "bounded"] = "legacy",
+     ) -> None:
++        _validate_transfer_mode(packed_transfer_mode, packed)
+         super().__init__(
+             client=client,
+             source=source,
+@@ -222,6 +261,8 @@ class HCCLTrainerWeightTransferEngine(NCCLTrainerWeightTransferEngine):
+                 raise ValueError("HCCL trainer requires a current NPU device")
+             device = torch.device("npu", index)
+         self.device = device
++        self.packed_transfer_mode = packed_transfer_mode
++        self._bounded_streams: tuple[Any, ...] | None = None
+         self.model_update_group = None
+         self._state = "ready"
+ 
+@@ -246,6 +287,7 @@ class HCCLTrainerWeightTransferEngine(NCCLTrainerWeightTransferEngine):
+             packed=init_info.packed,
+             packed_buffer_size_bytes=init_info.packed_buffer_size_bytes,
+             packed_num_buffers=init_info.packed_num_buffers,
++            packed_transfer_mode=init_info.packed_transfer_mode,
+         )
+         # Only the sender joins the trainer-to-worker group and drives the
+         # inference side; the other trainer ranks just join the trainer-side
+@@ -262,12 +304,18 @@ class HCCLTrainerWeightTransferEngine(NCCLTrainerWeightTransferEngine):
+             packed=init_info.packed,
+             packed_buffer_size_bytes=init_info.packed_buffer_size_bytes,
+             packed_num_buffers=init_info.packed_num_buffers,
++            packed_transfer_mode=init_info.packed_transfer_mode,
+         )
++        payload = worker_init_payload(worker_init_info)
++        if init_info.packed_transfer_mode == "legacy":
++            # Preserve the existing wire contract for legacy peers. Bounded
++            # peers must parse the new field; an older worker rejects it.
++            payload.pop("packed_transfer_mode")
+         # The worker-side init blocks inside the HCCL rendezvous, so drive the
+         # RPC on a side thread while this rank opens rank 0.
+         executor = ThreadPoolExecutor(max_workers=1)
+         try:
+-            future = executor.submit(client.init_weight_transfer_engine, worker_init_payload(worker_init_info))
++            future = executor.submit(client.init_weight_transfer_engine, payload)
+             engine.model_update_group = hccl_common.trainer_init(init_info, rank=init_info.rank)
+             future.result()
+         except BaseException:
+@@ -304,7 +352,19 @@ class HCCLTrainerWeightTransferEngine(NCCLTrainerWeightTransferEngine):
+             if self.model_update_group is None:
+                 raise RuntimeError("HCCL trainer communicator is not initialized")
+             pairs = self._checked_iter(source, meta)
+-            if self.packed:
++            if self.packed_transfer_mode == "bounded":
++                if self._bounded_streams is None:
++                    self._bounded_streams = tuple(torch.npu.Stream() for _ in range(self.packed_num_buffers))
++                bounded_broadcast_producer(
++                    iterator=pairs,
++                    metadata=iter((item.name, (item.shape, item.dtype)) for item in meta),
++                    group=self.model_update_group,
++                    src=0,
++                    buffer_size_bytes=self.packed_buffer_size_bytes,
++                    num_buffers=self.packed_num_buffers,
++                    streams=self._bounded_streams,
++                )
++            elif self.packed:
+                 packed_broadcast_producer(
+                     iterator=pairs,
+                     group=self.model_update_group,
+@@ -333,6 +393,7 @@ class HCCLTrainerWeightTransferEngine(NCCLTrainerWeightTransferEngine):
+         group, self.model_update_group = getattr(self, "model_update_group", None), None
+         if group is not None:
+             group.close()
++        self._bounded_streams = None
+ 
+     def shutdown(self) -> None:
+         self._state = "closed"

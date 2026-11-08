@@ -1,0 +1,29 @@
+{
+  "updates": 1001,
+  "elapsed_seconds": 1800.2803052150048,
+  "changed_weight_correct": true,
+  "last_memory": {
+    "before": [
+      {
+        "allocated": 5143036928,
+        "reserved": 10238296064,
+        "peak_allocated": 5143036928,
+        "peak_reserved": 10238296064,
+        "device_free": 54228180992,
+        "cpu_peak_rss_kib": 6779256,
+        "model_parameter_bytes": 4865458176
+      }
+    ],
+    "after": [
+      {
+        "allocated": 5143036928,
+        "reserved": 10238296064,
+        "peak_allocated": 9706441728,
+        "peak_reserved": 10238296064,
+        "device_free": 54228180992,
+        "cpu_peak_rss_kib": 6779256,
+        "model_parameter_bytes": 4865458176
+      }
+    ]
+  }
+}

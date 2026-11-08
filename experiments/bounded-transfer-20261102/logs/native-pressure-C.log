@@ -1,0 +1,218 @@
++------------------------------------------------------------------------------------------------------------------+
+| npu-smi 26.1.1                              Version: 26.1.1                                                      |
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU   Name                | Health        | Power(W)             Temp(C)                 Hugepages-Usage(page)   |
+| Chip                      | Bus-Id        | AICore(%)            Memory-Usage(MB)        HBM-Usage(MB)           |
++===========================+===============+======================================================================+
+| 1     910B2C              | OK            | 94.9                 57                      0    / 0                |
+| 0                         | 0000:19:00.0  | 0                    0    / 0                3444 / 65536            |
++===========================+===============+======================================================================+
+| 5     910B2C              | OK            | 99.3                 56                      0    / 0                |
+| 0                         | 0000:99:00.0  | 0                    0    / 0                3443 / 65536            |
++===========================+===============+======================================================================+
+| 12    910B2C              | OK            | 92.1                 59                      0    / 0                |
+| 0                         | 0000:D9:00.0  | 0                    0    / 0                3438 / 65536            |
++===========================+===============+======================================================================+
+| 15    910B2C              | OK            | 102.6                58                      0    / 0                |
+| 0                         | 0000:C9:00.0  | 0                    0    / 0                3438 / 65536            |
++===========================+===============+======================================================================+
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU     Chip              | Process id    | Process name       | Process memory(MB)    | Process id in container |
++===========================+===============+======================================================================+
+| No running processes found in NPU 1                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 5                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 12                                                                             |
++===========================+===============+======================================================================+
+| No running processes found in NPU 15                                                                             |
++===========================+===============+======================================================================+
+
+Paused keepalive controller 91914
++------------------------------------------------------------------------------------------------------------------+
+| npu-smi 26.1.1                              Version: 26.1.1                                                      |
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU   Name                | Health        | Power(W)             Temp(C)                 Hugepages-Usage(page)   |
+| Chip                      | Bus-Id        | AICore(%)            Memory-Usage(MB)        HBM-Usage(MB)           |
++===========================+===============+======================================================================+
+| 1     910B2C              | OK            | 94.9                 57                      0    / 0                |
+| 0                         | 0000:19:00.0  | 0                    0    / 0                3444 / 65536            |
++===========================+===============+======================================================================+
+| 5     910B2C              | OK            | 99.3                 56                      0    / 0                |
+| 0                         | 0000:99:00.0  | 0                    0    / 0                3443 / 65536            |
++===========================+===============+======================================================================+
+| 12    910B2C              | OK            | 92.1                 59                      0    / 0                |
+| 0                         | 0000:D9:00.0  | 0                    0    / 0                3438 / 65536            |
++===========================+===============+======================================================================+
+| 15    910B2C              | OK            | 102.6                58                      0    / 0                |
+| 0                         | 0000:C9:00.0  | 0                    0    / 0                3439 / 65536            |
++===========================+===============+======================================================================+
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU     Chip              | Process id    | Process name       | Process memory(MB)    | Process id in container |
++===========================+===============+======================================================================+
+| No running processes found in NPU 1                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 5                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 12                                                                             |
++===========================+===============+======================================================================+
+| No running processes found in NPU 15                                                                             |
++===========================+===============+======================================================================+
+
++------------------------------------------------------------------------------------------------------------------+
+| npu-smi 26.1.1                              Version: 26.1.1                                                      |
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU   Name                | Health        | Power(W)             Temp(C)                 Hugepages-Usage(page)   |
+| Chip                      | Bus-Id        | AICore(%)            Memory-Usage(MB)        HBM-Usage(MB)           |
++===========================+===============+======================================================================+
+| 1     910B2C              | OK            | 94.9                 57                      0    / 0                |
+| 0                         | 0000:19:00.0  | 0                    0    / 0                3444 / 65536            |
++===========================+===============+======================================================================+
+| 5     910B2C              | OK            | 99.3                 56                      0    / 0                |
+| 0                         | 0000:99:00.0  | 0                    0    / 0                3443 / 65536            |
++===========================+===============+======================================================================+
+| 12    910B2C              | OK            | 92.1                 59                      0    / 0                |
+| 0                         | 0000:D9:00.0  | 0                    0    / 0                3438 / 65536            |
++===========================+===============+======================================================================+
+| 15    910B2C              | OK            | 102.6                58                      0    / 0                |
+| 0                         | 0000:C9:00.0  | 0                    0    / 0                3439 / 65536            |
++===========================+===============+======================================================================+
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU     Chip              | Process id    | Process name       | Process memory(MB)    | Process id in container |
++===========================+===============+======================================================================+
+| No running processes found in NPU 1                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 5                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 12                                                                             |
++===========================+===============+======================================================================+
+| No running processes found in NPU 15                                                                             |
++===========================+===============+======================================================================+
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [startup.py:96] non-default args: {'skip_tokenizer_init': True, 'dtype': 'bfloat16', 'max_model_len': 128, 'distributed_executor_backend': 'mp', 'eplb_config': EPLBConfig(window_size=1000, step_interval=3000, num_redundant_experts=0, log_balancedness=False, log_balancedness_interval=1, use_async=True, policy='default', communicator=None, enable_migration_batching=False), 'enable_prefix_caching': False, 'kv_cache_memory_bytes': 268435456, 'max_num_batched_tokens': 256, 'max_num_seqs': 4, 'disable_log_stats': True, 'enforce_eager': True, 'additional_config': {'weight_nz_mode': 0}, 'weight_transfer_config': WeightTransferConfig(backend='hccl'), 'model': '/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/experiments/bounded-transfer-20261102/native-large-qwen/initial'}
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [model.py:744] Resolved architecture: Qwen2ForCausalLM
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [model.py:2170] Using max model len 128
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [scheduler.py:310] Chunked prefill is enabled with max_num_batched_tokens=256.
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [mrv2_utils.py:142] VLLM_USE_V2_MODEL_RUNNER is unset; using Model Runner V2 by default.
+(MainProcess pid=1858508) WARNING 11-02 17:05:38 [vllm.py:1758] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(MainProcess pid=1858508) WARNING 11-02 17:05:38 [vllm.py:1782] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [kernel.py:477] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['native'])
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [vllm.py:1985] Cudagraph is disabled under eager mode
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [utils.py:215] No ModelSlim quantization signature detected from model files for "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/experiments/bounded-transfer-20261102/native-large-qwen/initial". To force a quantization method, pass "--quantization <method>" explicitly.
+(MainProcess pid=1858508) WARNING 11-02 17:05:38 [platform.py:834] GPU-specific parameter is not supported on Ascend. parameter=disable_cascade_attn, value=True, action: resetting to False.
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [platform.py:1048] The timeout interval of the HCCL operator is 1836s. Timeout in seconds for execute_model RPC calls in multiprocessing must be greater than 1836s, Set VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS=3000
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [ascend_config.py:336] Dynamic EPLB is False
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [ascend_config.py:337] The number of redundant experts is 0
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [ascend_config.py:761] FlashComm1 is disabled. Using flashinfer_all2allv as the all2all backend.
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [platform.py:1333] Compilation disabled, using eager mode by default
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [utils.py:1470] Block size is set to 128 if prefix cache or chunked prefill is enabled.
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [platform.py:1643] Set PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
+(MainProcess pid=1858508) INFO 11-02 17:05:38 [compilation.py:317] Enabled custom fusions: norm_quant, act_quant
+INFO 11-02 17:05:49 [logger.py:158] [vllm-ascend] - [ascend_log] applied level=INFO debug=[] modules={}
+(EngineCore pid=1858801) INFO 11-02 17:05:49 [__init__.py:113] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+(EngineCore pid=1858801) INFO 11-02 17:05:49 [__init__.py:113] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+(EngineCore pid=1858801) INFO 11-02 17:05:49 [core.py:136] Initializing a V1 LLM engine (v0.1.dev1+g544f182d9.d20261102) with config: model='/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/experiments/bounded-transfer-20261102/native-large-qwen/initial', speculative_config=None, tokenizer='/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/experiments/bounded-transfer-20261102/native-large-qwen/initial', skip_tokenizer_init=True, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=128, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=None, quantization_config=None, enforce_eager=True, aux_output_config=AuxOutputConfig(enable_return_routed_experts=False, max_bytes=None), kv_cache_dtype=auto, device_config=npu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, custom_histogram_buckets=None, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/experiments/bounded-transfer-20261102/native-large-qwen/initial, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'cudagraph_decoder_replay': True, 'decoder_replay_cudagraph_capture_sizes': [], 'decoder_replay_trim_threshold': 768, 'compile_sizes': [], 'compile_ranges_endpoints': [256], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['native']), enable_flashinfer_autotune=True, enable_rocm_segmented_attn_autotune=False, enable_cutedsl_warmup=True, enable_jit_warmup=False, monokernel=False, moe_backend='auto', sparse_indexer_topk_backend='auto', linear_backend='auto', linear_backend_per_quant=None)
+(EngineCore pid=1858801) INFO 11-02 17:05:49 [multiproc_executor.py:167] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=10.246.99.155 (local), world_size=1, local_world_size=1
+(VllmWorker-0 pid=1859432) INFO 11-02 17:05:59 [patch_indexer_kv_dtype.py:102] Patched AttentionConfig.indexer_kv_dtype to accept 'int8' (DeepSeek V4 Ascend indexer K cache dtype).
+(VllmWorker-0 pid=1859432) INFO 11-02 17:05:59 [patch_kv_cache_dtype.py:117] Patched CacheConfig.cache_dtype to accept 'int8' and 'mxfp8' (Ascend KV cache dtypes).
+(VllmWorker-0 pid=1859432) INFO 11-02 17:06:00 [__init__.py:113] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+(VllmWorker-0 pid=1859432) INFO 11-02 17:06:00 [__init__.py:113] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+(VllmWorker-0 pid=1859432) INFO 11-02 17:06:00 [mrv2_utils.py:142] VLLM_USE_V2_MODEL_RUNNER is unset; using Model Runner V2 by default.
+(VllmWorker-0 pid=1859432) WARNING 11-02 17:06:01 [patch_triton.py:69] NPU Triton causal_conv1d_update is unavailable (cannot import name 'causal_conv1d_update_npu' from 'vllm_ascend.ops.triton.mamba.causal_conv1d' (/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/upstream/vllm-ascend/vllm_ascend/ops/triton/mamba/causal_conv1d.py)); falling back to the PyTorch implementation, which syncs per request and therefore stalls ACL graph capture at decode-FULL.
+INFO 11-02 17:06:02 [logger.py:158] [vllm-ascend] - [ascend_log] applied level=INFO debug=[] modules={}
+(VllmWorker-0 pid=1859432) INFO 11-02 17:06:02 [ascend_config.py:336] Dynamic EPLB is False
+(VllmWorker-0 pid=1859432) INFO 11-02 17:06:02 [ascend_config.py:337] The number of redundant experts is 0
+(VllmWorker-0 pid=1859432) INFO 11-02 17:06:02 [ascend_config.py:761] FlashComm1 is disabled. Using flashinfer_all2allv as the all2all backend.
+(Worker pid=1859432) INFO 11-02 17:06:04 [parallel_state.py:1928] world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_bda611a89903481ab8e011be8f44aa84 backend=hccl
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+(Worker pid=1859432) INFO 11-02 17:06:04 [parallel_state.py:2372] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, ETP rank 0, EP rank N/A, EPLB rank N/A
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+(Worker pid=1859432) WARNING 11-02 17:06:05 [worker.py:600] npu model runner v2 is in developing, some features doesn't work for now.
+(Worker pid=1859432) INFO 11-02 17:06:05 [utils.py:174] Wrapping torch.cuda with torch.npu.
+[rank0]:[W1102 17:06:05.688645556 NPUCachingAllocator.cpp:202] Warning: The current CANN and HDK(driver) versions require processing for 32 padding size, with memory allocation. (function operator())
+(Worker pid=1859432) INFO 11-02 17:06:05 [ascend_config.py:336] Dynamic EPLB is False
+(Worker pid=1859432) INFO 11-02 17:06:05 [ascend_config.py:337] The number of redundant experts is 0
+INFO 11-02 17:06:05 [config.py:709] [vllm-ascend] [observability] - [runtime_config] worker leader persisted path=/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/runtime/config/runtime_config.json explicit_path=False (overwrote)
+INFO 11-02 17:06:05 [queue.py:78] [vllm-ascend] [observability] - [runtime_guard] action worker started name=runtime-guard-actions maxsize=64
+INFO 11-02 17:06:05 [bus_worker.py:109] [vllm-ascend] [observability] - [runtime_guard] bus worker started name=runtime-guard-bus
+(Worker pid=1859432) INFO 11-02 17:06:05 [model_runner.py:399] Loading model from scratch...
+(Worker pid=1859432) INFO 11-02 17:06:05 [platform.py:1718] FA3 will not be enabled when rl_config.enable_training_consistency is false. Note that Ascend NPU will use its registered plugin backend instead.
+(Worker pid=1859432) INFO 11-02 17:06:05 [base_loader.py:82] Initializing model took 0.258497 seconds
+(Worker pid=1859432) INFO 11-02 17:06:05 [weight_utils.py:1144] Filesystem type for checkpoints: GPFS. Checkpoint size: 4.53 GiB. Available RAM: 377.02 GiB.
+(Worker pid=1859432) INFO 11-02 17:06:05 [weight_utils.py:1167] Auto-prefetch is disabled because the filesystem (GPFS) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  1.19it/s]
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  1.19it/s]
+
+(Worker pid=1859432) INFO 11-02 17:06:06 [default_loader.py:506] Loading weights took 0.96 seconds
+(Worker pid=1859432) INFO 11-02 17:06:08 [model_runner.py:431] Model loading took 4.53 GiB memory and 2.775384 seconds
+(Worker pid=1859432) INFO 11-02 17:06:08 [factory.py:116] Creating weight transfer engine: HCCLWeightTransferEngine
+(Worker pid=1859432) INFO 11-02 17:06:08 [interface.py:776] Setting kv cache block size to 128 for CUSTOM backend(s).
+(EngineCore pid=1858801) INFO 11-02 17:06:08 [utils.py:380] Using LBNHC KV cache layout.
+(Worker pid=1859432) INFO 11-02 17:06:09 [worker.py:684] Initial free memory 60.58 GiB, reserved 0.25 GiB for KV Cache as specified by kv_cache_memory_bytes, skipping memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [kv_cache_utils.py:1101] NPU KV cache size: 32,768 tokens, Maximum concurrency for 128 tokens per request: 256.00x
+(Worker pid=1859432) INFO 11-02 17:06:09 [cpu_binding.py:799] CPU binding skipped: non-ARM CPU detected.
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [core.py:402] init engine (profile, create kv cache, warmup model) took 1.12 s
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [mrv2_utils.py:142] VLLM_USE_V2_MODEL_RUNNER is unset; using Model Runner V2 by default.
+(EngineCore pid=1858801) WARNING 11-02 17:06:09 [serial_utils.py:78] Allowing insecure serialization using pickle due to VLLM_ALLOW_INSECURE_SERIALIZATION=1
+(EngineCore pid=1858801) WARNING 11-02 17:06:09 [vllm.py:1758] Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+(EngineCore pid=1858801) WARNING 11-02 17:06:09 [vllm.py:1782] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [kernel.py:477] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['native'])
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [serial_utils.py:78] Allowing insecure serialization using pickle due to VLLM_ALLOW_INSECURE_SERIALIZATION=1
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [vllm.py:1985] Cudagraph is disabled under eager mode
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [utils.py:215] No ModelSlim quantization signature detected from model files for "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/experiments/bounded-transfer-20261102/native-large-qwen/initial". To force a quantization method, pass "--quantization <method>" explicitly.
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [platform.py:1048] The timeout interval of the HCCL operator is 1836s. Timeout in seconds for execute_model RPC calls in multiprocessing must be greater than 1836s, Set VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS=3000
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [platform.py:1333] Compilation disabled, using eager mode by default
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [platform.py:1643] Set PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
+(EngineCore pid=1858801) INFO 11-02 17:06:09 [compilation.py:317] Enabled custom fusions: norm_quant, act_quant
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383] Chat template warmup failed
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383] Traceback (most recent call last):
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383]   File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/upstream/vllm/vllm/renderers/base.py", line 376, in warmup
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383]     self.render_chat([[{"role": "user", "content": "warmup"}]], chat_params)
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383]   File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/upstream/vllm/vllm/renderers/base.py", line 1357, in render_chat
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383]     self.render_messages(conversation, chat_params)
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383]   File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/upstream/vllm/vllm/renderers/hf.py", line 1110, in render_messages
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383]     tokenizer = self.get_tokenizer()
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383]                 ^^^^^^^^^^^^^^^^^^^^
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383]   File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/upstream/vllm/vllm/renderers/base.py", line 220, in get_tokenizer
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383]     raise ValueError("Tokenizer not available when `skip_tokenizer_init=True`")
+(MainProcess pid=1858508) WARNING 11-02 17:06:09 [base.py:383] ValueError: Tokenizer not available when `skip_tokenizer_init=True`
+Loading weights:   0%|          | 0/27 [00:00<?, ?it/s]Loading weights: 100%|██████████| 27/27 [00:00<00:00, 11275.01it/s]
+[W1102 17:06:15.681635824 NPUCachingAllocator.cpp:202] Warning: The current CANN and HDK(driver) versions require processing for 32 padding size, with memory allocation. (function operator())
+(Worker pid=1859432) INFO 11-02 17:06:16 [utils.py:621] Found hccl from library libhccl.so
+(Worker pid=1859432) INFO 11-02 17:06:16 [pyhccl.py:88] vLLM is using pyhccl
+(MainProcess pid=1858508) INFO 11-02 17:06:16 [utils.py:621] Found hccl from library libhccl.so
+(MainProcess pid=1858508) INFO 11-02 17:06:16 [pyhccl.py:88] vLLM is using pyhccl
+(Worker pid=1859432) WARNING 11-02 17:06:17 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(Worker pid=1859432) WARNING 11-02 17:06:17 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(Worker pid=1859432) WARNING 11-02 17:06:18 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(Worker pid=1859432) WARNING 11-02 17:06:18 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(Worker pid=1859432) WARNING 11-02 17:06:18 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(Worker pid=1859432) WARNING 11-02 17:06:19 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(Worker pid=1859432) WARNING 11-02 17:06:19 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(Worker pid=1859432) WARNING 11-02 17:06:19 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(Worker pid=1859432) WARNING 11-02 17:06:20 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(Worker pid=1859432) WARNING 11-02 17:06:20 [layerwise.py:266] AscendRotaryEmbedding: Failed to load weights
+(MainProcess pid=1858508) WARNING 11-02 17:06:20 [base.py:446] Using None for EOS token id because tokenizer is not initialized
+{"task": "update", "tp": 1, "inference": [{"tokens": [6713, 82216, 33010, 111321, 54893, 35206, 101720, 140590], "logprobs": [{"6713": -7.6027140617370605, "130185": -7.8214640617370605, "192259": -7.8214640617370605, "186909": -7.9152140617370605, "66335": -8.008964538574219}, {"82216": -7.546596527099609, "125538": -7.640346527099609, "178967": -7.734096527099609, "202887": -7.921596527099609, "106516": -7.952846527099609}, {"33010": -7.485029697418213, "256758": -8.047529220581055, "258436": -8.047529220581055, "1695": -8.172529220581055, "104187": -8.172529220581055}, {"111321": -7.7300639152526855, "197830": -7.8238139152526855, "138170": -7.8550639152526855, "143546": -7.8863139152526855, "130948": -7.9175639152526855}, {"54893": -7.57187557220459, "19059": -7.69687557220459, "87030": -7.75937557220459, "180664": -7.82187557220459, "60943": -7.85312557220459}, {"35206": -7.482828617095947, "232319": -7.701578617095947, "184903": -7.732828617095947, "206677": -7.732828617095947, "249768": -7.857828617095947}, {"101720": -7.793702125549316, "45314": -7.887452125549316, "253346": -7.887452125549316, "140861": -7.949952125549316, "161413": -8.012452125549316}, {"140590": -7.892280578613281, "169826": -8.017280578613281, "53921": -8.079780578613281, "109943": -8.079780578613281, "103264": -8.111030578613281}]}, {"tokens": [257939, 223028, 65060, 35186, 249129, 191615, 191330, 70169], "logprobs": [{"257939": -7.262322425842285, "21832": -7.293572425842285, "20400": -7.512322425842285, "37451": -7.699822425842285, "22339": -7.824822425842285}, {"223028": -6.762953281402588, "175737": -7.294203281402588, "73334": -7.669203281402588, "142450": -7.887953281402588, "149977": -7.950453281402588}, {"65060": -7.172870635986328, "1259": -7.672870635986328, "70336": -7.672870635986328, "48352": -7.829120635986328, "231786": -7.891620635986328}, {"35186": -7.507472038269043, "26445": -7.694972038269043, "51180": -7.882472038269043, "93760": -7.913722038269043, "231374": -7.944972038269043}, {"249129": -7.925413131713867, "93386": -7.956663131713867, "93994": -7.987913131713867, "132908": -8.019163131713867, "152038": -8.019163131713867}, {"191615": -7.607354640960693, "76567": -7.701104640960693, "38689": -7.763604640960693, "6967": -7.826104640960693, "141190": -7.857354640960693}, {"191330": -7.4482293128967285, "247034": -7.6357293128967285, "143272": -7.7607293128967285, "97364": -7.8544793128967285, "209386": -7.8544793128967285}, {"70169": -7.3597025871276855, "85162": -7.7972025871276855, "16576": -7.8597025871276855, "88881": -7.9847025871276855, "256666": -8.015953063964844}]}], "mode": "bounded", "slots": 2, "bucket_bytes": 134217728, "graph": false, "complete_update_seconds": [0.4824477910005953, 0.304616060006083, 0.305106149004132, 0.303747514000861, 0.3032624629995553, 0.3055190669983858, 0.31124621899652993, 0.30298108399438206, 0.3038274159989669, 0.30355263199453475], "worker_memory": [{"before": [{"allocated": 5138841600, "reserved": 5161091072, "peak_allocated": 5138841600, "peak_reserved": 5161091072, "device_free": 59325665280, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 9702246400, "peak_reserved": 9732882432, "device_free": 54752940032, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}, {"before": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 5138841600, "peak_reserved": 9732882432, "device_free": 54752940032, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 9702246400, "peak_reserved": 9734979584, "device_free": 54752940032, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}, {"before": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 5138841600, "peak_reserved": 9732882432, "device_free": 54752940032, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 9702246400, "peak_reserved": 9734979584, "device_free": 54752940032, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}, {"before": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 5138841600, "peak_reserved": 9732882432, "device_free": 54752940032, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 9702246400, "peak_reserved": 9734979584, "device_free": 54753017856, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}, {"before": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 5138841600, "peak_reserved": 9732882432, "device_free": 54753017856, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 9702246400, "peak_reserved": 9734979584, "device_free": 54753017856, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}, {"before": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 5138841600, "peak_reserved": 9732882432, "device_free": 54753017856, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 9702246400, "peak_reserved": 9734979584, "device_free": 54753017856, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}, {"before": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 5138841600, "peak_reserved": 9732882432, "device_free": 54753017856, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 9702246400, "peak_reserved": 9734979584, "device_free": 54752784384, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}, {"before": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 5138841600, "peak_reserved": 9732882432, "device_free": 54752784384, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 9702246400, "peak_reserved": 9734979584, "device_free": 54752784384, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}, {"before": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 5138841600, "peak_reserved": 9732882432, "device_free": 54752784384, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9711910912, "peak_allocated": 9702246400, "peak_reserved": 9734979584, "device_free": 54773755904, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}, {"before": [{"allocated": 5138841600, "reserved": 9711910912, "peak_allocated": 5138841600, "peak_reserved": 9711910912, "device_free": 54773755904, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}], "after": [{"allocated": 5138841600, "reserved": 9732882432, "peak_allocated": 9702246400, "peak_reserved": 9732882432, "device_free": 54752960512, "cpu_peak_rss_kib": 6778924, "model_parameter_bytes": 4865458176}]}], "stability_elapsed_seconds": 3.297628984997573, "parameter_addresses_stable": true, "parameter_counts": [17]}
+(MainProcess pid=1858508) INFO 11-02 17:06:24 [core_client.py:788] [shutdown] MPClient: start timeout=default
+(MainProcess pid=1858508) INFO 11-02 17:06:24 [core_client.py:790] [shutdown] MPClient: stopping engine manager
+(MainProcess pid=1858508) INFO 11-02 17:06:24 [utils.py:628] [shutdown] Process manager: send sigterm to process EngineCore
+(EngineCore pid=1858801) INFO 11-02 17:06:24 [core.py:1513] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=1858801) INFO 11-02 17:06:24 [core.py:1700] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=1858801) INFO 11-02 17:06:24 [core.py:1731] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=1858801) INFO 11-02 17:06:24 [core.py:1561] [shutdown] EngineCore: exiting busy loop
+(EngineCore pid=1858801) INFO 11-02 17:06:24 [multiproc_executor.py:580] [shutdown] Executor: waiting for worker exit count=1
+(Worker pid=1859432) INFO 11-02 17:06:24 [multiproc_executor.py:944] Parent process exited, terminating worker queues
+(EngineCore pid=1858801) INFO 11-02 17:06:29 [multiproc_executor.py:587] [shutdown] Executor: all workers exited gracefully
+(EngineCore pid=1858801) WARNING 11-02 17:06:29 [parallel_state.py:2579] torch.accelerator.empty_host_cache() only available in Pytorch >=2.9
+(MainProcess pid=1858508) WARNING 11-02 17:06:29 [utils.py:648] [shutdown] Process manager: force killing remaining processes count=1
+(MainProcess pid=1858508) WARNING 11-02 17:06:29 [utils.py:653] [shutdown] Process manager: force killing remaining process EngineCore pid 1858801
+(MainProcess pid=1858508) INFO 11-02 17:06:29 [core_client.py:792] [shutdown] MPClient: engine manager stopped
+(MainProcess pid=1858508) INFO 11-02 17:06:29 [core_client.py:793] [shutdown] MPClient: cleaning up background resources
+(MainProcess pid=1858508) INFO 11-02 17:06:29 [core_client.py:795] [shutdown] MPClient: complete
+Resumed keepalive controller 91914

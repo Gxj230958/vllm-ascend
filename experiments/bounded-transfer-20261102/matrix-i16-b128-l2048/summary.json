@@ -1,0 +1,75 @@
+{
+  "physical_devices": [
+    1,
+    5
+  ],
+  "modes": {
+    "A": {
+      "complete_transfer_and_copy_loader_seconds": {
+        "n": 30,
+        "median": 1.0856068274988502,
+        "iqr": 0.007585222751004039,
+        "p95": 1.1145340462015154
+      },
+      "receiver_temporary_allocated_bytes": {
+        "n": 30,
+        "median": 4697623552.0,
+        "iqr": 0.0,
+        "p95": 4697623552.0
+      },
+      "max_collective_bytes": 2147483648,
+      "largest_parameter_bytes": 2147483648,
+      "bucket_bytes": 134217728,
+      "inventory_bytes": 17179869184,
+      "all_bytes_correct": true
+    },
+    "B": {
+      "complete_transfer_and_copy_loader_seconds": {
+        "n": 30,
+        "median": 1.0521461035023094,
+        "iqr": 0.006413416000214056,
+        "p95": 1.0571659124987491
+      },
+      "receiver_temporary_allocated_bytes": {
+        "n": 30,
+        "median": 2281718272.0,
+        "iqr": 0.0,
+        "p95": 2281718272.0
+      },
+      "max_collective_bytes": 134217728,
+      "largest_parameter_bytes": 2147483648,
+      "bucket_bytes": 134217728,
+      "inventory_bytes": 17179869184,
+      "all_bytes_correct": true,
+      "paired_median_latency_change_ci95": [
+        -0.034599149902627135,
+        -0.028217401983738122
+      ],
+      "median_latency_change": -0.030822138502602736
+    },
+    "C": {
+      "complete_transfer_and_copy_loader_seconds": {
+        "n": 30,
+        "median": 0.9957223745041119,
+        "iqr": 0.0037276275015756255,
+        "p95": 1.001795467250122
+      },
+      "receiver_temporary_allocated_bytes": {
+        "n": 30,
+        "median": 2415936512.0,
+        "iqr": 0.0,
+        "p95": 2415936512.0
+      },
+      "max_collective_bytes": 134217728,
+      "largest_parameter_bytes": 2147483648,
+      "bucket_bytes": 134217728,
+      "inventory_bytes": 17179869184,
+      "all_bytes_correct": true,
+      "paired_median_latency_change_ci95": [
+        -0.08676864591273392,
+        -0.08032933528401909
+      ],
+      "median_latency_change": -0.08279650672594308
+    }
+  }
+}

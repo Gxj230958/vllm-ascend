@@ -1,0 +1,8 @@
+{
+  "vllm_source": "544f182d9f0c9bfe8bd7645525951d5e3692a542",
+  "requirements_patch": "vllm-environment.patch",
+  "opencv-python-headless": "4.11.0.86",
+  "numpy": "1.26.4",
+  "reason": "Triton Ascend 3.2.2 requires NumPy 1.26.4. OpenCV 4.11 supports that version on Python 3.12.",
+  "experiment_scope": "Dense Qwen2; no image or video input. Identical dependencies for all transfer variants."
+}

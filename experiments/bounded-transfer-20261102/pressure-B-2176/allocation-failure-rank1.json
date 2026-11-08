@@ -1,0 +1,9 @@
+{
+  "rank": 1,
+  "mode": "B",
+  "sample": 0,
+  "receiver_headroom_mib": 2176,
+  "allocated_before": 4294984192,
+  "allocated_peak": 4429202432,
+  "error": "NPU out of memory. Tried to allocate 2.00 GiB (NPU 1; 60.96 GiB total capacity; 4.13 GiB already allocated; 4.13 GiB current active; 55.98 GiB free; 6.13 GiB allowed; 4.19 GiB reserved in total by PyTorch).If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation."
+}

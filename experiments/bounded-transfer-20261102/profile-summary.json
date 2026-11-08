@@ -1,0 +1,71 @@
+{
+  "records": [
+    {
+      "rank": 0,
+      "mode": "A",
+      "communication_events": 12,
+      "copy_events": 1,
+      "communication_event_ms": 314.5785,
+      "copy_kernel_ms": 3.3435,
+      "overlap_ms": 0.0,
+      "copy_time_overlapped_fraction": 0.0,
+      "kernel_csv": "profiler/profiler-rank0-A/phd--96f41d4490f2-trl2uumfc7_1839806_20261102170032349_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv"
+    },
+    {
+      "rank": 0,
+      "mode": "B",
+      "communication_events": 32,
+      "copy_events": 48,
+      "communication_event_ms": 336.212,
+      "copy_kernel_ms": 6.9715,
+      "overlap_ms": 0.0,
+      "copy_time_overlapped_fraction": 0.0,
+      "kernel_csv": "profiler/profiler-rank0-B/phd--96f41d4490f2-trl2uumfc7_1839806_20261102170039325_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv"
+    },
+    {
+      "rank": 0,
+      "mode": "C",
+      "communication_events": 32,
+      "copy_events": 48,
+      "communication_event_ms": 309.824,
+      "copy_kernel_ms": 9.11025,
+      "overlap_ms": 8.972,
+      "copy_time_overlapped_fraction": 0.9848247852693395,
+      "kernel_csv": "profiler/profiler-rank0-C/phd--96f41d4490f2-trl2uumfc7_1839806_20261102170045153_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv"
+    },
+    {
+      "rank": 1,
+      "mode": "A",
+      "communication_events": 12,
+      "copy_events": 66,
+      "communication_event_ms": 238.5175,
+      "copy_kernel_ms": 16.33775,
+      "overlap_ms": 10.58775,
+      "copy_time_overlapped_fraction": 0.6480543526495386,
+      "kernel_csv": "profiler/profiler-rank1-A/phd--96f41d4490f2-trl2uumfc7_1839807_20261102170032348_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv"
+    },
+    {
+      "rank": 1,
+      "mode": "B",
+      "communication_events": 32,
+      "copy_events": 81,
+      "communication_event_ms": 220.43075,
+      "copy_kernel_ms": 14.2275,
+      "overlap_ms": 0.0,
+      "copy_time_overlapped_fraction": 0.0,
+      "kernel_csv": "profiler/profiler-rank1-B/phd--96f41d4490f2-trl2uumfc7_1839807_20261102170039325_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv"
+    },
+    {
+      "rank": 1,
+      "mode": "C",
+      "communication_events": 32,
+      "copy_events": 81,
+      "communication_event_ms": 223.62175,
+      "copy_kernel_ms": 16.74425,
+      "overlap_ms": 12.59875,
+      "copy_time_overlapped_fraction": 0.7524224733863863,
+      "kernel_csv": "profiler/profiler-rank1-C/phd--96f41d4490f2-trl2uumfc7_1839807_20261102170045153_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv"
+    }
+  ],
+  "interpretation": "Interval overlap of HCCL communication events and TensorMove device kernels; communication events may include waiting. These profiled samples are excluded from timing statistics."
+}

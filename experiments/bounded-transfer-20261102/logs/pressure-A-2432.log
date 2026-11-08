@@ -1,0 +1,131 @@
++------------------------------------------------------------------------------------------------------------------+
+| npu-smi 26.1.1                              Version: 26.1.1                                                      |
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU   Name                | Health        | Power(W)             Temp(C)                 Hugepages-Usage(page)   |
+| Chip                      | Bus-Id        | AICore(%)            Memory-Usage(MB)        HBM-Usage(MB)           |
++===========================+===============+======================================================================+
+| 1     910B2C              | OK            | 94.8                 57                      0    / 0                |
+| 0                         | 0000:19:00.0  | 0                    0    / 0                3444 / 65536            |
++===========================+===============+======================================================================+
+| 5     910B2C              | OK            | 99.4                 55                      0    / 0                |
+| 0                         | 0000:99:00.0  | 0                    0    / 0                3440 / 65536            |
++===========================+===============+======================================================================+
+| 12    910B2C              | OK            | 92.2                 57                      0    / 0                |
+| 0                         | 0000:D9:00.0  | 0                    0    / 0                3438 / 65536            |
++===========================+===============+======================================================================+
+| 15    910B2C              | OK            | 102.3                58                      0    / 0                |
+| 0                         | 0000:C9:00.0  | 0                    0    / 0                3439 / 65536            |
++===========================+===============+======================================================================+
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU     Chip              | Process id    | Process name       | Process memory(MB)    | Process id in container |
++===========================+===============+======================================================================+
+| No running processes found in NPU 1                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 5                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 12                                                                             |
++===========================+===============+======================================================================+
+| No running processes found in NPU 15                                                                             |
++===========================+===============+======================================================================+
+
+Paused keepalive controller 91914
++------------------------------------------------------------------------------------------------------------------+
+| npu-smi 26.1.1                              Version: 26.1.1                                                      |
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU   Name                | Health        | Power(W)             Temp(C)                 Hugepages-Usage(page)   |
+| Chip                      | Bus-Id        | AICore(%)            Memory-Usage(MB)        HBM-Usage(MB)           |
++===========================+===============+======================================================================+
+| 1     910B2C              | OK            | 94.9                 57                      0    / 0                |
+| 0                         | 0000:19:00.0  | 0                    0    / 0                3444 / 65536            |
++===========================+===============+======================================================================+
+| 5     910B2C              | OK            | 99.0                 55                      0    / 0                |
+| 0                         | 0000:99:00.0  | 0                    0    / 0                3440 / 65536            |
++===========================+===============+======================================================================+
+| 12    910B2C              | OK            | 92.0                 57                      0    / 0                |
+| 0                         | 0000:D9:00.0  | 0                    0    / 0                3438 / 65536            |
++===========================+===============+======================================================================+
+| 15    910B2C              | OK            | 102.4                58                      0    / 0                |
+| 0                         | 0000:C9:00.0  | 0                    0    / 0                3439 / 65536            |
++===========================+===============+======================================================================+
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU     Chip              | Process id    | Process name       | Process memory(MB)    | Process id in container |
++===========================+===============+======================================================================+
+| No running processes found in NPU 1                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 5                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 12                                                                             |
++===========================+===============+======================================================================+
+| No running processes found in NPU 15                                                                             |
++===========================+===============+======================================================================+
+
++------------------------------------------------------------------------------------------------------------------+
+| npu-smi 26.1.1                              Version: 26.1.1                                                      |
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU   Name                | Health        | Power(W)             Temp(C)                 Hugepages-Usage(page)   |
+| Chip                      | Bus-Id        | AICore(%)            Memory-Usage(MB)        HBM-Usage(MB)           |
++===========================+===============+======================================================================+
+| 1     910B2C              | OK            | 94.9                 57                      0    / 0                |
+| 0                         | 0000:19:00.0  | 0                    0    / 0                3444 / 65536            |
++===========================+===============+======================================================================+
+| 5     910B2C              | OK            | 99.1                 55                      0    / 0                |
+| 0                         | 0000:99:00.0  | 0                    0    / 0                3440 / 65536            |
++===========================+===============+======================================================================+
+| 12    910B2C              | OK            | 91.9                 57                      0    / 0                |
+| 0                         | 0000:D9:00.0  | 0                    0    / 0                3438 / 65536            |
++===========================+===============+======================================================================+
+| 15    910B2C              | OK            | 102.4                58                      0    / 0                |
+| 0                         | 0000:C9:00.0  | 0                    0    / 0                3439 / 65536            |
++===========================+===============+======================================================================+
++---------------------------+---------------+----------------------------------------------------------------------+
+| NPU     Chip              | Process id    | Process name       | Process memory(MB)    | Process id in container |
++===========================+===============+======================================================================+
+| No running processes found in NPU 1                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 5                                                                              |
++===========================+===============+======================================================================+
+| No running processes found in NPU 12                                                                             |
++===========================+===============+======================================================================+
+| No running processes found in NPU 15                                                                             |
++===========================+===============+======================================================================+
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[rank0]:[W1102 16:57:58.805852277 NPUCachingAllocator.cpp:202] Warning: The current CANN and HDK(driver) versions require processing for 32 padding size, with memory allocation. (function operator())
+[rank1]:[W1102 16:57:58.815673421 NPUCachingAllocator.cpp:202] Warning: The current CANN and HDK(driver) versions require processing for 32 padding size, with memory allocation. (function operator())
+E1102 16:58:02.157961 1829547 ../torch_npu/csrc/core/npu/NPUCachingAllocator.cpp:1332] NPU out of memory. Tried to allocate 2.00 GiB (NPU 1; 60.96 GiB total capacity; 6.00 GiB already allocated; 6.00 GiB current active; 54.11 GiB free; 6.38 GiB allowed; 6.07 GiB reserved in total by PyTorch).If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.
+W1102 16:58:05.433000 1829491 .venv-ascend/lib/python3.12/site-packages/torch/multiprocessing/spawn.py:165] Terminating process 1829546 via signal SIGTERM
+Traceback (most recent call last):
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/tools/transfer_experiment.py", line 265, in <module>
+    main()
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/tools/transfer_experiment.py", line 261, in main
+    mp.spawn(worker, args=(args, port), nprocs=len(args.devices), join=True)
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/.venv-ascend/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 340, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/.venv-ascend/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 296, in start_processes
+    while not context.join():
+              ^^^^^^^^^^^^^^
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/.venv-ascend/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 211, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 1 terminated with the following error:
+Traceback (most recent call last):
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/.venv-ascend/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 87, in _wrap
+    fn(i, *args)
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/tools/transfer_experiment.py", line 231, in worker
+    records = memory_performance(rank, args, group, dist, f"npu:{device}")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/tools/transfer_experiment.py", line 173, in memory_performance
+    transfer(rank, mode, weights, metadata, group, loader, capacity)
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/tools/transfer_experiment.py", line 50, in transfer
+    packed_broadcast_consumer(iter(metadata), post_unpack_func=loader, **options)
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/upstream/vllm-ascend/vllm_ascend/distributed/weight_transfer/packed_tensor.py", line 290, in packed_broadcast_consumer
+    weights = unpack_tensor(
+              ^^^^^^^^^^^^^^
+  File "/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/upstream/vllm-ascend/vllm_ascend/distributed/weight_transfer/packed_tensor.py", line 221, in unpack_tensor
+    (name, tensor.clone().view(dtype).reshape(shape))
+           ^^^^^^^^^^^^^^
+torch.OutOfMemoryError: NPU out of memory. Tried to allocate 2.00 GiB (NPU 1; 60.96 GiB total capacity; 6.00 GiB already allocated; 6.00 GiB current active; 54.11 GiB free; 6.38 GiB allowed; 6.07 GiB reserved in total by PyTorch).If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.
+
+Resumed keepalive controller 91914

@@ -1,0 +1,18 @@
+/inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/.venv-ascend/lib/python3.12/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+........................................................................ [ 35%]
+........................................................................ [ 70%]
+............................................................             [100%]
+=============================== warnings summary ===============================
+.venv-ascend/lib/python3.12/site-packages/torch/jit/_script.py:362: 14 warnings
+  /inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/.venv-ascend/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+tests/ut/distributed/weight_transfer/test_packed_tensor.py::test_packed_npu_ipc_consumer_clones_slices
+  /inspire/sj-ssd3/project/qianghuaxuexi/s26045/phd_contributions/verl-pr-3/upstream/vllm-ascend/tests/ut/distributed/weight_transfer/test_packed_tensor.py:713: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+    assert weights[0][1].storage().data_ptr() != weights[1][1].storage().data_ptr()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+204 passed, 15 warnings in 0.90s

@@ -1,0 +1,18 @@
+-r ../../upstream/vllm-ascend/requirements.txt
+-r ../../upstream/vllm/requirements/common.txt
+triton-ascend @ https://mirrors.huaweicloud.com/ascend/repos/pypi/triton-ascend/triton_ascend-3.2.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+flash-linear-attention-npu-a2 @ https://mirrors.huaweicloud.com/ascend/repos/pypi/flash-linear-attention-npu-a2/flash_linear_attention_npu_a2-26.9.1-py3-none-manylinux_2_34_x86_64.whl
+setuptools>=78.1.1,<81
+setuptools-scm
+setuptools-rust
+ninja
+packaging
+cmake<4
+wheel
+pip
+attrs
+googleapis-common-protos
+pytest
+pytest-asyncio
+ruff
+ray>=2.47.1,<=2.48.0

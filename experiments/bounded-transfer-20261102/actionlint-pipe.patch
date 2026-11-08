@@ -1,0 +1,34 @@
+diff --git a/process.go b/process.go
+index cc978e5..8ff6386 100644
+--- a/process.go
++++ b/process.go
+@@ -3,8 +3,8 @@ package actionlint
+ import (
+ 	"context"
+ 	"fmt"
+-	"io"
+ 	"os/exec"
++	"strings"
+ 	"sync"
+ 
+ 	"github.com/mattn/go-shellwords"
+@@ -25,17 +25,10 @@ func (e *cmdExecution) run() ([]byte, error) {
+ 	cmd := exec.Command(e.cmd, e.args...)
+ 	cmd.Stderr = nil
+ 
+-	p, err := cmd.StdinPipe()
+-	if err != nil {
+-		return nil, fmt.Errorf("could not make stdin pipe for %s process: %w", e.cmd, err)
+-	}
+-	if _, err := io.WriteString(p, e.stdin); err != nil {
+-		p.Close()
+-		return nil, fmt.Errorf("could not write to stdin of %s process: %w", e.cmd, err)
+-	}
+-	p.Close()
++	cmd.Stdin = strings.NewReader(e.stdin)
+ 
+ 	var stdout []byte
++	var err error
+ 	if e.combineOutput {
+ 		stdout, err = cmd.CombinedOutput()
+ 	} else {
